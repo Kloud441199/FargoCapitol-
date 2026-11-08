@@ -1693,3 +1693,120 @@
     }
   }
 </style>
+</head>
+<body>
+  <div class="wsc-preloader" id="wsc-preloader" aria-hidden="true">
+    <div class="wsc-preloader-stage">
+      <div class="wsc-preloader-ring ring-1"></div>
+      <div class="wsc-preloader-ring ring-2"></div>
+      <div class="wsc-preloader-ring ring-3"></div>
+      <div class="wsc-preloader-ring ring-4"></div>
+      <div class="wsc-preloader-logo">
+        <img src="/images/wsc-reloader.png" alt="Wall Street Capital">
+      </div>
+    </div>
+
+    <div class="wsc-preloader-brand">
+      <div class="wsc-preloader-wordmark">WALL STREET CAPITAL</div>
+      <div class="wsc-preloader-tagline">
+        <span>INVEST</span>
+        <span class="wsc-dot">·</span>
+        <span>GROW</span>
+        <span class="wsc-dot">·</span>
+        <span>EARN</span>
+      </div>
+    </div>
+
+    <div class="wsc-preloader-status">
+      <span class="wsc-status-text">INITIALIZING SECURE SESSION</span>
+      <span class="wsc-status-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+  </div>
+
+<div class="auth-bg"></div>
+
+<button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle theme" draggable="false">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+  </svg>
+</button>
+
+<div class="lp-shell">
+  <nav class="lp-nav" id="lp-nav">
+    <div class="lp-nav-left">
+      <a class="lp-nav-mark wsc-logo" href="/">
+        <img class="wsc-logo-img wsc-logo-navbar" src="/images/wsc-logo.png" alt="Wall Street Capital">
+      </a>
+    </div>
+
+    <div class="lp-nav-links" id="lp-nav-links">
+      <a href="#features">Features</a>
+      <a href="#markets">Markets</a>
+      <a href="#chart">Chart</a>
+      <a href="#plans">Plans</a>
+      <a href="#trading">Trading</a>
+      <a href="#faq">FAQ</a>
+    </div>
+
+    <div class="lp-nav-right">
+      <div class="lang-select" id="lang-select">
+        <button type="button" class="lang-trigger" id="lang-trigger" aria-label="Change language">
+          <svg class="globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>
+          </svg>
+          <span id="lang-current" class="lang-current-label">English</span>
+          <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        <div class="lang-menu" id="lang-menu">
+          <div class="list" id="lang-list"></div>
+        </div>
+      </div>
+
+      <a href="/login.html" class="lp-nav-signin">Sign in</a>
+      <a href="/signup.html" class="btn btn-solid lp-nav-cta">Get started</a>
+
+      <button class="lp-nav-burger" id="lp-nav-burger" aria-label="Menu" aria-expanded="false">
+        <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="lp-nav-backdrop" id="lp-nav-backdrop"></div>
+  </nav>
+  
+  <div class="tv-ticker-wrapper">
+    <iframe
+      src="https://s.tradingview.com/embed-widget/ticker-tape/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22FOREXCOM%3ASPXUSD%22%2C%22title%22%3A%22S%26P%20500%22%7D%2C%7B%22proName%22%3A%22NASDAQ%3AAAPL%22%2C%22title%22%3A%22Apple%22%7D%2C%7B%22proName%22%3A%22NASDAQ%3AMSFT%22%2C%22title%22%3A%22Microsoft%22%7D%2C%7B%22proName%22%3A%22NASDAQ%3ANVDA%22%2C%22title%22%3A%22NVIDIA%22%7D%2C%7B%22proName%22%3A%22AMEX%3ASPY%22%2C%22title%22%3A%22S%26P%20500%20ETF%22%7D%2C%7B%22proName%22%3A%22NASDAQ%3AQQQ%22%2C%22title%22%3A%22Nasdaq%20100%20ETF%22%7D%2C%7B%22proName%22%3A%22NASDAQ%3ATSLA%22%2C%22title%22%3A%22Tesla%22%7D%2C%7B%22proName%22%3A%22BITSTAMP%3ABTCUSD%22%2C%22title%22%3A%22Bitcoin%22%7D%5D%2C%22showSymbolLogo%22%3Atrue%2C%22isTransparent%22%3Atrue%2C%22displayMode%22%3A%22adaptive%22%2C%22colorTheme%22%3A%22dark%22%7D"
+      style="width:100%; height:46px; border:0; display:block;"
+      frameborder="0"
+      allowtransparency="true"
+      scrolling="no">
+    </iframe>
+  </div>
+
+  <section class="lp-hero">
+    <h1 class="reveal-hero">Capital allocated with <em>discipline</em>, not noise.</h1>
+    <p class="subhead reveal-hero">Sign up, verify your identity, link a bank account, and see a portfolio built from real, executed trades — not numbers an app invented for you.</p>
+    <div class="actions reveal-hero">
+      <a class="btn btn-solid" href="/signup.html">Get started</a>
+      <a class="btn" href="/login.html">Sign in</a>
+    </div>
+  </section>
+
+  <div class="lp-trust reveal-stagger">
+    <div class="lp-trust-item"><div class="value">IEX</div><div class="label">Real-time market feed</div></div>
+    <div class="lp-trust-item"><div class="value">$0</div><div class="label">Commission on US equities</div></div>
+    <div class="lp-trust-item"><div class="value">SIPC</div><div class="label">Brokerage partner coverage</div></div>
+    <div class="lp-trust-item"><div class="value">TradingView</div><div class="label">Charting &amp; market data</div></div>
+  </div>
