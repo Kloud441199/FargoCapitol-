@@ -2115,4 +2115,551 @@
       <details class="lp-faq-item reveal"><summary>How long does verification take?</summary><p>Most accounts are verified within a few hours. Complex cases can take 1–2 business days. You can track the status on your dashboard while it's in progress.</p></details>
       <details class="lp-faq-item reveal"><summary>How do I fund my account?</summary><p>Link a bank account through Plaid and transfer via ACH. ACH deposits typically settle in 3–5 business days. Wire transfers are available for higher tiers and settle same-day.</p></details>
       <details class="lp-faq-item reveal"><summary>Can I withdraw my money at any time?</summary><p>Yes. There's no lock-up. Withdrawals go back to the same bank account you funded from, subject to standard ACH settlement timelines and any unsettled trades.</p></details>
-      <details class="lp-faq-item reveal"><summary>Do you offer crypto?</summary><p>Not currentl
+      <details class="lp-faq-item reveal"><summary>Do you offer crypto?</summary><p>Not currently. This platform is focused on US equities and ETFs. If we add crypto later, it will be through a licensed crypto custodian — not a token we invented.</p></details>
+      <details class="lp-faq-item reveal"><summary>Is my money insured?</summary><p>Brokerage accounts at our SIPC-member partner are covered by SIPC up to $500,000 (including $250,000 for cash claims), subject to SIPC rules. SIPC protects against broker failure, not market losses. There is no FDIC insurance because this is not a bank.</p></details>
+    </div>
+  </section>
+
+  <section class="lp-cta">
+    <h2 class="reveal">Get started. See what real allocation looks like.</h2>
+    <p class="reveal">No minimum. No simulated returns. No invented numbers.</p>
+    <a class="btn btn-solid reveal" href="/signup.html" style="font-size: 15px; padding: 15px 38px;">Get started</a>
+  </section>
+
+  <footer class="lp-footer">
+    <div class="lp-footer-grid reveal-stagger">
+      <div>
+        <div class="lp-nav-mark wsc-logo" style="margin-bottom: 14px;">
+          <img class="wsc-logo-img wsc-logo-footer" src="/images/wsc-logo.png" alt="Wall Street Capital">
+        </div>
+        <p class="muted" style="max-width: 40ch; line-height: 1.65;">Investing involves risk, including possible loss of principal. Not FDIC insured. Not bank guaranteed.</p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="/signup.html">Get started</a>
+        <a href="/login.html">Sign in</a>
+        <a href="#features">Features</a>
+        <a href="#chart">Chart</a>
+        <a href="#plans">Plans</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="/privacy.html">Privacy policy</a>
+        <a href="/terms.html">Terms of service</a>
+        <a href="/disclosures.html">Disclosures</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="/contact.html">Contact support</a>
+        <a href="#faq">FAQ</a>
+        <a href="/status.html">System status</a>
+      </div>
+    </div>
+    <div class="lp-disclosure">
+      Wall Street Capital is a brokerage platform.
+      <br><br>
+      <strong>Language notice:</strong> Legal disclosures are provided in English only. Machine translations of this page are for convenience — in case of any conflict, the English version governs.
+    </div>
+  </footer>
+
+</div>
+
+<script src="/js/theme.js"></script>
+<script>
+/* ---------- Scroll reveal ---------- */
+(function () {
+  if (!("IntersectionObserver" in window)) {
+    document.querySelectorAll(".reveal, .reveal-stagger, .reveal-hero").forEach(el => el.classList.add("is-visible"));
+    return;
+  }
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -60px 0px" });
+  document.querySelectorAll(".reveal, .reveal-stagger, .reveal-hero").forEach(el => observer.observe(el));
+})();
+
+/* ---------- Language selector ---------- */
+(function () {
+  const LANGUAGES = [
+    { code: "en",    flag: "🇬🇧", name: "English",    native: "English" },
+    { code: "fr",    flag: "🇫🇷", name: "French",     native: "Français" },
+    { code: "es",    flag: "🇪🇸", name: "Spanish",    native: "Español" },
+    { code: "ar",    flag: "🇸🇦", name: "Arabic",     native: "العربية", rtl: true },
+    { code: "pt",    flag: "🇵🇹", name: "Portuguese", native: "Português" },
+    { code: "de",    flag: "🇩🇪", name: "German",     native: "Deutsch" },
+    { code: "it",    flag: "🇮🇹", name: "Italian",    native: "Italiano" },
+    { code: "zh-CN", flag: "🇨🇳", name: "Chinese",    native: "中文" },
+    { code: "ja",    flag: "🇯🇵", name: "Japanese",   native: "日本語" },
+    { code: "ko",    flag: "🇰🇷", name: "Korean",     native: "한국어" },
+    { code: "hi",    flag: "🇮🇳", name: "Hindi",      native: "हिन्दी" },
+    { code: "ru",    flag: "🇷🇺", name: "Russian",    native: "Русский" },
+    { code: "tr",    flag: "🇹🇷", name: "Turkish",    native: "Türkçe" },
+    { code: "sw",    flag: "🇰🇪", name: "Swahili",    native: "Kiswahili" },
+    { code: "yo",    flag: "🇳🇬", name: "Yoruba",     native: "Yorùbá" },
+    { code: "ha",    flag: "🇳🇬", name: "Hausa",      native: "Hausa" },
+    { code: "ig",    flag: "🇳🇬", name: "Igbo",       native: "Igbo" }
+  ];
+
+  const trigger = document.getElementById("lang-trigger");
+  const menu    = document.getElementById("lang-menu");
+  const list    = document.getElementById("lang-list");
+  const current = document.getElementById("lang-current");
+
+  function renderList() {
+    const saved = localStorage.getItem("wsc_lang") || "en";
+    list.innerHTML = "";
+    LANGUAGES.forEach(lang => {
+      const el = document.createElement("div");
+      el.className = "item" + (lang.code === saved ? " active" : "");
+      el.dataset.code = lang.code;
+      el.innerHTML = `<span class="flag">${lang.flag}</span><span>${lang.name}</span><span class="native">${lang.native}</span>`;
+      el.addEventListener("click", () => selectLanguage(lang.code));
+      list.appendChild(el);
+    });
+  }
+
+  function selectLanguage(code) {
+    localStorage.setItem("wsc_lang", code);
+    const lang = LANGUAGES.find(l => l.code === code);
+    if (lang) current.textContent = lang.name;
+    closeMenu();
+    applyGoogleTranslate(code);
+  }
+
+  function applyGoogleTranslate(code) {
+    const domain = window.location.hostname;
+    document.cookie = `googtrans=/en/${code}; path=/; domain=${domain}`;
+    document.cookie = `googtrans=/en/${code}; path=/`;
+    if (code === "en") {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain}`;
+    }
+    window.location.reload();
+  }
+
+  function openMenu() { menu.classList.add("open"); trigger.classList.add("open"); }
+  function closeMenu() { menu.classList.remove("open"); trigger.classList.remove("open"); }
+
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (menu.classList.contains("open")) closeMenu();
+    else openMenu();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!document.getElementById("lang-select").contains(e.target)) closeMenu();
+  });
+
+  renderList();
+  const saved = localStorage.getItem("wsc_lang") || "en";
+  const lang = LANGUAGES.find(l => l.code === saved);
+  if (lang) current.textContent = lang.name;
+})();
+
+/* ---------- Preloader ---------- */
+(function () {
+  var pre = document.getElementById("wsc-preloader");
+  if (!pre) return;
+  var MIN_MS = 700;
+  var start = Date.now();
+  function hide() {
+    var elapsed = Date.now() - start;
+    var wait = Math.max(0, MIN_MS - elapsed);
+    setTimeout(function () {
+      pre.classList.add("fade-out");
+      setTimeout(function () {
+        if (pre.parentNode) pre.parentNode.removeChild(pre);
+      }, 600);
+    }, wait);
+  }
+  if (document.readyState === "complete") {
+    hide();
+  } else {
+    window.addEventListener("load", hide);
+  }
+  setTimeout(hide, 8000);
+})();
+
+/* ---------- Landing nav burger ---------- */
+(function () {
+  const nav      = document.getElementById("lp-nav");
+  const burger   = document.getElementById("lp-nav-burger");
+  const backdrop = document.getElementById("lp-nav-backdrop");
+  const links    = document.getElementById("lp-nav-links");
+  if (!nav || !burger || !backdrop) return;
+
+  function openMenu() {
+    nav.classList.add("menu-open");
+    burger.setAttribute("aria-expanded", "true");
+    backdrop.classList.add("show");
+  }
+  function closeMenu() {
+    nav.classList.remove("menu-open");
+    burger.setAttribute("aria-expanded", "false");
+    backdrop.classList.remove("show");
+  }
+  function toggleMenu() {
+    if (nav.classList.contains("menu-open")) closeMenu();
+    else openMenu();
+  }
+
+  burger.addEventListener("click", toggleMenu);
+  backdrop.addEventListener("click", closeMenu);
+
+  if (links) {
+    links.querySelectorAll("a").forEach(a => {
+      a.addEventListener("click", () => {
+        setTimeout(closeMenu, 80);
+      });
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && nav.classList.contains("menu-open")) closeMenu();
+  });
+})();
+</script>
+
+<div id="google_translate_element" style="display:none;"></div>
+<script>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6abbea1cceedaf34444fc6cf/1k3n0l0sk';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+
+<div class="pwa-install-backdrop" id="pwa-install" aria-hidden="true">
+  <div class="pwa-install-sheet" role="dialog" aria-modal="true">
+    <button class="pwa-install-close" id="pwa-install-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <div class="pwa-install-head">
+      <img class="pwa-install-icon" src="/images/pwa/icon-192-v2.png" alt="">
+      <div class="pwa-install-title-block">
+        <div class="pwa-install-title">Install Wall Street Capital</div>
+        <div class="pwa-install-sub" id="pwa-install-sub">
+          Add to your Home Screen for the best experience
+        </div>
+      </div>
+    </div>
+
+    <div class="pwa-install-steps" id="pwa-install-ios">
+      <div class="pwa-install-step">
+        <span class="pwa-install-num">1</span>
+        <span>Tap the <strong>Share</strong>
+          <svg class="pwa-inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>
+          </svg>
+          button in Safari
+        </span>
+      </div>
+      <div class="pwa-install-step">
+        <span class="pwa-install-num">2</span>
+        <span>Scroll down and tap <strong>Add to Home Screen</strong></span>
+      </div>
+      <div class="pwa-install-step">
+        <span class="pwa-install-num">3</span>
+        <span>Tap <strong>Add</strong> to confirm</span>
+      </div>
+    </div>
+
+    <button class="pwa-install-android-btn" id="pwa-install-android" style="display:none;">
+      Install app
+    </button>
+
+    <button class="pwa-install-dismiss" id="pwa-install-dismiss">Remind me later</button>
+  </div>
+</div>
+
+<style>
+  .pwa-install-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .pwa-install-backdrop.open { display: flex; }
+
+  .pwa-install-sheet {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--panel, #0f1a30);
+    border: 1px solid var(--line, rgba(106,153,255,0.16));
+    border-radius: 20px;
+    padding: 22px 20px 16px;
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    animation: pwaSheetUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html[data-theme="light"] .pwa-install-sheet {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  @keyframes pwaSheetUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .pwa-install-close {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--line, rgba(106,153,255,0.16));
+    background: transparent;
+    color: var(--text-dim, #9DA9C0);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pwa-install-close:hover { color: var(--gold-bright, #60A5FA); border-color: var(--gold, #3B82F6); }
+  .pwa-install-close svg { width: 14px; height: 14px; }
+
+  .pwa-install-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 18px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line-soft, rgba(255,255,255,0.06));
+  }
+  .pwa-install-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+  .pwa-install-title {
+    font-family: var(--serif, Georgia, serif);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text, #fff);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .pwa-install-sub {
+    font-size: 13px;
+    color: var(--text-dim, #9DA9C0);
+    line-height: 1.45;
+  }
+
+  .pwa-install-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .pwa-install-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(96, 165, 250, 0.06);
+    border: 1px solid rgba(96, 165, 250, 0.14);
+    color: var(--text, #fff);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .pwa-install-step strong { color: var(--gold-bright, #60A5FA); font-weight: 600; }
+  .pwa-install-num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.18);
+    color: var(--gold-bright, #60A5FA);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono, monospace);
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .pwa-inline-icon {
+    display: inline-block;
+    width: 13px; height: 13px;
+    vertical-align: -2px;
+    margin: 0 2px;
+    color: var(--gold-bright, #60A5FA);
+  }
+
+  .pwa-install-android-btn,
+  .pwa-install-dismiss {
+    width: 100%;
+    padding: 13px 18px;
+    border-radius: 12px;
+    font-family: var(--sans, -apple-system, sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .pwa-install-android-btn {
+    background: linear-gradient(135deg, #60A5FA, #1D4ED8);
+    color: #fff;
+    margin-bottom: 10px;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+  }
+  .pwa-install-android-btn:hover { transform: translateY(-1px); }
+  .pwa-install-dismiss {
+    background: transparent;
+    border: 1px solid var(--line, rgba(106,153,255,0.16));
+    color: var(--text-dim, #9DA9C0);
+  }
+  .pwa-install-dismiss:hover {
+    border-color: var(--gold, #3B82F6);
+    color: var(--gold-bright, #60A5FA);
+  }
+</style>
+
+<script>
+(function () {
+  "use strict";
+  console.log("[PWA] install script started");
+
+  const LS_KEY = "wsc_pwa_install_dismissed_at";
+  const RE_SHOW_DAYS = 14;
+
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+
+  if (isStandalone) return;
+
+  const lastDismiss = Number(localStorage.getItem(LS_KEY) || 0);
+  const snoozeDays = Number(localStorage.getItem("wsc_pwa_install_snooze_days") || RE_SHOW_DAYS);
+  const daysSince = (Date.now() - lastDismiss) / (1000 * 60 * 60 * 24);
+  if (lastDismiss && daysSince < snoozeDays) return;
+
+  const ua = window.navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                (ua.includes("Mac") && "ontouchend" in document);
+  const isAndroid = /Android/i.test(ua);
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
+
+  const backdrop   = document.getElementById("pwa-install");
+  const closeBtn   = document.getElementById("pwa-install-close");
+  const dismissBtn = document.getElementById("pwa-install-dismiss");
+  const iosBlock   = document.getElementById("pwa-install-ios");
+  const androidBtn = document.getElementById("pwa-install-android");
+  const subEl      = document.getElementById("pwa-install-sub");
+
+  let deferredPrompt = null;
+
+  function markDismissed(scope) {
+    const days = scope === "later" ? 1 : RE_SHOW_DAYS;
+    localStorage.setItem(LS_KEY, String(Date.now()));
+    localStorage.setItem("wsc_pwa_install_snooze_days", String(days));
+  }
+
+  function openSheet() {
+    backdrop.classList.add("open");
+    backdrop.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+  function closeSheet() {
+    backdrop.classList.remove("open");
+    backdrop.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  closeBtn.addEventListener("click", () => { markDismissed("never"); closeSheet(); });
+  dismissBtn.addEventListener("click", () => { markDismissed("later"); closeSheet(); });
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) { markDismissed("later"); closeSheet(); }
+  });
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    if (isAndroid) {
+      iosBlock.style.display = "none";
+      androidBtn.style.display = "";
+      subEl.textContent = "Install the app for a faster, full-screen experience";
+
+      androidBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (outcome === "accepted") {
+          markDismissed("never");
+          closeSheet();
+        }
+      });
+
+      setTimeout(openSheet, 1200);
+    }
+  });
+
+  if (isIOS) {
+    console.log("[PWA] iOS detected, showing sheet in 1200ms");
+    iosBlock.style.display = "";
+    androidBtn.style.display = "none";
+
+    if (isSafari) {
+      subEl.textContent = "Add to your Home Screen for the best experience";
+    } else {
+      subEl.textContent = "Open in Safari to install this app";
+      const step1 = document.querySelector('#pwa-install-ios .pwa-install-step:nth-child(1) span:last-child');
+      if (step1) {
+        step1.innerHTML = 'Tap the <strong>Share</strong> icon in Safari. <br><small>You are currently in a different browser.</small>';
+      }
+    }
+    setTimeout(openSheet, 1200);
+  } else if (!isAndroid) {
+    console.log("[PWA] Desktop browser detected — no sheet");
+  } else {
+    console.log("[PWA] Android — waiting for beforeinstallprompt event");
+  }
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('[PWA] Service Worker registered:', registration.scope);
+      })
+      .catch(error => {
+        console.log('[PWA] Service Worker registration failed:', error);
+      });
+  });
+}
+</script>
+</body>
+</html>
