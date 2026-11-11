@@ -47,13 +47,13 @@ body {
   --gold-glow: rgba(212, 175, 55, 0.35);
 
   /* Success / Danger */
-  --tick-up: #10B981;      
+  --tick-up: #059669;      
   --tick-down: #F87171;    
 
   /* Text */
   --text: #FFFFFF;
-  --text-dim: #A7F3D0;     
-  --text-dimmer: #6EE7B7;  
+  --text-dim: #86EFAC;     
+  --text-dimmer: #34D399;  
 
   /* Inputs */
   --input-bg: rgba(2, 20, 11, 0.5);
