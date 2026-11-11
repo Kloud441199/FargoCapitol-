@@ -456,8 +456,8 @@
   </div>
 </div>
 
-<script src="/js/theme.js"></script>
-<script src="/js/api.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/api.js"></script>
 
 <!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -487,9 +487,9 @@ function routeAfterLogin(user) {
   var next = safeNext();
 
   if (isStaff) {
-    window.location.href = next || "/admin/index.html";
+    window.location.href = next || "admin/index.html";
   } else {
-    window.location.href = "/dashboard.html";
+    window.location.href = "dashboard.html";
   }
 }
 
