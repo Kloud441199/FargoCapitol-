@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<base href="/FargoCapitol-/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Fargo Capitol</title>
+<script>
+  (function(){
+    var t = localStorage.getItem("wsc_theme") || "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  /* Dashboard Specific Styles */
+  .dash-app { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; position: relative; z-index: 1; }
+  @media (max-width: 900px) { .dash-app { grid-template-columns: 1fr; } }
+  
+  .dash-sidebar { background: rgba(2, 20, 11, 0.85); border-right: 1px solid var(--line-soft); backdrop-filter: blur(24px); padding: 22px 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  @media (max-width: 900px) { .dash-sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; transform: translateX(-100%); transition: transform 0.3s; z-index: 60; height: 100dvh; } .dash-sidebar.open { transform: translateX(0); } }
+  
+  .sb-brand { display: flex; align-items: center; gap: 10px; padding: 8px 10px 20px; border-bottom: 1px solid var(--line-soft); margin-bottom: 18px; text-decoration: none; }
+  .sb-brand img { height: 40px; width: auto; }
+  
+  .sb-user { display: flex; flex-direction: column; align-items: center; padding: 16px 12px; background: rgba(6, 44, 24, 0.4); border: 1px solid var(--line-soft); border-radius: 14px; margin-bottom: 20px; text-align: center; }
+  .sb-avatar { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #10B981, #047857); display: flex; align-items: center; justify-content: center; color: #FFF; font-family: var(--serif); font-size: 20px; margin-bottom: 10px; position: relative; }
+  .sb-avatar::after { content: ""; position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--tick-up); border: 2px solid var(--bg); }
+  .sb-user .name { font-family: var(--serif); font-size: 14.5px; color: var(--text); margin-bottom: 2px; }
+  .sb-user .status { font-size: 11px; color: var(--tick-up); margin-bottom: 10px; }
+  .sb-balance { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 10px 12px; border-radius: 10px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.2); text-align: left; }
+  .sb-balance .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dimmer); }
+  .sb-balance .amount { font-family: var(--mono); font-size: 15px; color: var(--gold-bright); }
+  
+  .sb-group { margin-bottom: 16px; }
+  .sb-group-title { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dimmer); padding: 6px 12px; margin-bottom: 4px; font-weight: 600; }
+  .sb-link { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; font-size: 14px; color: var(--text-dim); text-decoration: none; transition: background 0.15s, color 0.15s; margin-bottom: 1px; cursor: pointer; }
+  .sb-link:hover { background: rgba(212, 175, 55, 0.08); color: var(--text); }
+  .sb-link.active { background: rgba(212, 175, 55, 0.14); color: var(--text); box-shadow: inset 3px 0 0 var(--gold); }
+  .sb-link svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--text-dimmer); }
+  .sb-link:hover svg, .sb-link.active svg { color: var(--gold-bright); }
+  
+  .dash-main { display: flex; flex-direction: column; min-width: 0; }
+  .dash-topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 26px; border-bottom: 1px solid var(--line-soft); background: rgba(2, 20, 11, 0.75); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 20; }
+  
+  .tb-left { display: flex; align-items: center; gap: 14px; }
+  .tb-burger { display: none; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text-dim); cursor: pointer; align-items: center; justify-content: center; }
+  @media (max-width: 900px) { .tb-burger { display: flex; } }
+  
+  .tb-title { font-family: var(--serif); font-size: 15.5px; color: var(--text); font-weight: 500; }
+  .tb-right { display: flex; align-items: center; gap: 12px; }
+  
+  .dash-content { padding: 24px 26px 50px; max-width: 1200px; width: 100%; }
+  @media (max-width: 700px) { .dash-content { padding: 18px; } }
+  
+  .overview-hero-card { width: 100%; max-width: 640px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 32px 28px 26px; backdrop-filter: blur(24px); text-align: center; position: relative; overflow: hidden; margin: 0 auto 24px; }
+  .ohc-amount { font-family: var(--mono); font-size: clamp(36px, 5.2vw, 52px); font-weight: 500; color: var(--text); line-height: 1.05; margin: 10px 0; }
+  .ohc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 460px; margin: 20px auto 0; }
+  
+  .section-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; backdrop-filter: blur(20px); margin-bottom: 20px; }
+  .section-card .sc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line-soft); }
+  .section-card .sc-head h3 { font-family: var(--serif); font-size: 16.5px; font-weight: 500; margin: 0; color: var(--text); }
+  
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 1000px) { .kpi-strip { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 500px) { .kpi-strip { grid-template-columns: 1fr; } }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 16px 18px; }
+  .kpi .kpi-value { font-family: var(--mono); font-size: 20px; color: var(--text); margin-bottom: 4px; }
+  .kpi .kpi-label { font-size: 10px; text-transform: uppercase; color: var(--text-dimmer); font-weight: 600; }
+
+  .sb-backdrop { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px); z-index: 55; }
+  .sb-backdrop.show { display: block; }
+  @media (min-width: 901px) { .sb-backdrop { display: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="auth-bg"></div>
+
+<button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle theme">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+</button>
+
+<div class="dash-app" id="dash-app"></div>
+
+<script src="js/theme.js"></script>
+<script src="js/api.js"></script>
+<script>
+  requireAuth(); // Checks if user is logged in
+
+  // 1. Generate the Dashboard Layout HTML
+  const app = document.getElementById("dash-app");
+  const user = Api.user() || { full_name: "Demo User", email: "demo@fcl.test" };
+  const userName = user.full_name || "User";
+
+  app.innerHTML = `
+    <div class="sb-backdrop" id="sb-backdrop"></div>
+    
+    <!-- SIDEBAR -->
+    <aside class="dash-sidebar" id="dash-sidebar">
+      <a class="sb-brand" href="index.html">
+        <img src="wsc-logo.png" alt="Fargo Capitol">
+      </a>
+      
+      <div class="sb-user">
+        <div class="sb-avatar">${userName.charAt(0)}</div>
+        <div class="name">${userName}</div>
+        <div class="status">Online</div>
+        <div class="sb-balance">
+          <div class="label">Balance</div>
+          <div class="amount" id="sb-balance-value">$25,000.00</div>
+        </div>
+      </div>
+      
+      <div class="sb-group">
+        <div class="sb-group-title">Main</div>
+        <a class="sb-link active" data-page="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      
+      <div class="sb-group">
+        <div class="sb-group-title">Finance</div>
+        <a class="sb-link" data-page="fund">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v14"/><path d="m19 10-7 7-7-7"/><path d="M5 21h14"/></svg>
+          <span>Fund Account</span>
+        </a>
+        <a class="sb-link" data-page="withdraw">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V7"/><path d="m5 14 7-7 7 7"/><path d="M5 3h14"/></svg>
+          <span>Withdraw Funds</span>
+        </a>
+        <a class="sb-link" data-page="history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>Transaction History</span>
+        </a>
+      </div>
+      
+      <div class="sb-group">
+        <div class="sb-group-title">Account</div>
+        <a class="sb-link" data-page="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Account Settings</span>
+        </a>
+      </div>
+      
+      <div class="sb-group" style="margin-top: 30px; border-top: 1px solid var(--line-soft); padding-top: 20px;">
+        <a class="sb-link" onclick="Api.clearToken(); window.location.href='login.html';" style="color: var(--tick-down);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span>Log Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="dash-main">
+      <header class="dash-topbar">
+        <div class="tb-left">
+          <button class="tb-burger" id="tb-burger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <div class="tb-title">Dashboard Overview</div>
+        </div>
+        <div class="tb-right">
+          <span class="tb-verified">Verified</span>
+          <div style="font-size: 13px; color: var(--text-dim);">${user.email}</div>
+        </div>
+      </header>
+
+      <main class="dash-content" id="dash-content"></main>
+    </div>
+  `;
+
+  // 2. Page Content Templates
+  const pages = {
+    overview: `
+      <div class="overview-hero-card">
+        <div style="font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Total Portfolio Balance</div>
+        <div class="ohc-amount">$25,000.00</div>
+        <div style="color: var(--tick-up); font-size: 13px; margin-bottom: 20px;">● Available for Withdrawal</div>
+        <div class="ohc-actions">
+          <a class="btn btn-solid" data-page="fund">Deposit</a>
+          <a class="btn" data-page="withdraw">Withdraw</a>
+        </div>
+      </div>
+      
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-label">Active Investments</div><div class="kpi-value">3</div></div>
+        <div class="kpi"><div class="kpi-label">Total Profit</div><div class="kpi-value up" style="color:var(--tick-up)">+$1,245.50</div></div>
+        <div class="kpi"><div class="kpi-label">Pending Deposits</div><div class="kpi-value">0</div></div>
+        <div class="kpi"><div class="kpi-label">Account Status</div><div class="kpi-value">Tier 1</div></div>
+      </div>
+
+      <div class="section-card">
+        <div class="sc-head"><h3>Recent Activity</h3></div>
+        <p style="color: var(--text-dim); font-size: 14px;">No recent transactions found.</p>
+      </div>
+    `,
+    fund: `<div class="section-card"><div class="sc-head"><h3>Fund Account</h3></div><p>Funding options will go here.</p></div>`,
+    withdraw: `<div class="section-card"><div class="sc-head"><h3>Withdraw Funds</h3></div><p>Withdrawal form will go here.</p></div>`,
+    history: `<div class="section-card"><div class="sc-head"><h3>Transaction History</h3></div><p>Your history will go here.</p></div>`,
+    settings: `<div class="section-card"><div class="sc-head"><h3>Account Settings</h3></div><p>Settings will go here.</p></div>`
+  };
+
+  // 3. Page Navigation Logic
+  function loadPage(pageKey) {
+    document.getElementById("dash-content").innerHTML = pages[pageKey] || pages.overview;
+    
+    // Update active link
+    document.querySelectorAll(".sb-link").forEach(l => l.classList.remove("active"));
+    const activeLink = document.querySelector(`.sb-link[data-page="${pageKey}"]`);
+    if (activeLink) activeLink.classList.add("active");
+
+    // Close mobile sidebar
+    document.getElementById("dash-sidebar").classList.remove("open");
+    document.getElementById("sb-backdrop").classList.remove("show");
+  }
+
+  // 4. Wire up the clicks
+  document.querySelectorAll("[data-page]").forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      loadPage(link.dataset.page);
+    });
+  });
+
+  // 5. Mobile Burger Menu
+  document.getElementById("tb-burger").addEventListener("click", () => {
+    document.getElementById("dash-sidebar").classList.add("open");
+    document.getElementById("sb-backdrop").classList.add("show");
+  });
+  document.getElementById("sb-backdrop").addEventListener("click", () => {
+    document.getElementById("dash-sidebar").classList.remove("open");
+    document.getElementById("sb-backdrop").classList.remove("show");
+  });
+
+  // 6. Load initial page
+  loadPage("overview");
+</script>
+</body>
+</html>
