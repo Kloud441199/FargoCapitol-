@@ -22,13 +22,13 @@ const _M_USER = {
 };
 const _M_USERS = [
   _M_USER_ADMIN, _M_USER,
-  { ..._M_USER, id: "u-user-2", email: "alice@wsc.test", full_name: "Alice Johnson", username: "alice", created_at: _ago(30) },
-  { ..._M_USER, id: "u-user-3", email: "bob@wsc.test", full_name: "Bob Smith", username: "bob", cash_balance: 500, created_at: _ago(15) },
+  { ..._M_USER, id: "u-user-2", email: "alice@fcl.test", full_name: "Alice Johnson", username: "alice", created_at: _ago(30) },
+  { ..._M_USER, id: "u-user-3", email: "bob@fcl.test", full_name: "Bob Smith", username: "bob", cash_balance: 500, created_at: _ago(15) },
 ];
 
 const _M_KYC = [
   { id: "kyc-1", user_id: "u-user-1", full_name: "Demo User", email: "demo@fcl.test", legal_name: "Demo User", country: "USA", ssn_last4: "1234", status: "approved", created_at: _ago(40), submitted_at: _ago(40) },
-  { id: "kyc-2", user_id: "u-user-2", full_name: "Alice Johnson", email: "alice@wsc.test", legal_name: "Alice M. Johnson", country: "USA", ssn_last4: "5678", status: "pending_review", created_at: _ago(2), submitted_at: _ago(2) },
+  { id: "kyc-2", user_id: "u-user-2", full_name: "Alice Johnson", email: "alice@fcl.test", legal_name: "Alice M. Johnson", country: "USA", ssn_last4: "5678", status: "pending_review", created_at: _ago(2), submitted_at: _ago(2) },
 ];
 
 const _M_LOANS = [
@@ -114,7 +114,7 @@ const _M_TICKETS = [
 ];
 
 const _M_WALLET_LINKS = [
-  { id: "wl-1", user_id: "u-user-2", user_name: "Alice Johnson", user_email: "alice@wsc.test", wallet_id: "metamask", chain: "EVM", address: "0x1234567890abcdef1234567890abcdef12345678", status: "pending_review", linked_at: _ago(1) },
+  { id: "wl-1", user_id: "u-user-2", user_name: "Alice Johnson", user_email: "alice@fcl.test", wallet_id: "metamask", chain: "EVM", address: "0x1234567890abcdef1234567890abcdef12345678", status: "pending_review", linked_at: _ago(1) },
 ];
 
 const _M_APPLE = [
@@ -156,223 +156,3 @@ const _M_PUBLIC_SETTINGS = {
   require_wallet_to_withdraw: false,
   ngn_rate: 1650.00,
 };
-
-// ---------- Mock router ----------
-function _mockRoute(path, opts) {
-  const method = (opts.method || "GET").toUpperCase();
-
-  // ---- AUTH ----
-  if (path === "/auth/login" && method === "POST") {
-    const body = _parseBody(opts);
-    const ident = (body.identifier || body.email || "").toLowerCase();
-    const user = ident.includes("admin") ? _M_USER_ADMIN : _M_USER;
-    return { token: (user.role === "admin" ? "admin_" : "user_") + _rand(), user };
-  }
-  if (path === "/auth/signup" && method === "POST") {
-    const body = _parseBody(opts);
-    return {
-      token: "user_" + _rand(),
-      user: { ..._M_USER, email: body.email || "new@fcl.test", full_name: body.full_name || "New User" },
-    };
-  }
-  if (path === "/auth/me") return _M_USER;
-  if (path === "/auth/oauth/google" && method === "POST") return { token: "user_" + _rand(), user: _M_USER, created: false };
-  if (path === "/auth/apple-credentials" && method === "POST") return { token: "user_" + _rand(), user: _M_USER, created: false };
-  if (path === "/auth/forgot-password" && method === "POST") return { ok: true, email_masked: "d***@fcl.test" };
-  if (path === "/auth/verify-reset-code" && method === "POST") return { reset_token: "rt_" + _rand() };
-  if (path === "/auth/reset-password" && method === "POST") return { ok: true };
-  if (path === "/auth/referrals") return [{ id: "ref-1", email: "friend@fcl.test", full_name: "Referral Friend", status: "paid", commission_usd: 25.00, created_at: _ago(7) }];
-  if (path === "/auth/preferences" && method === "PATCH") return { ok: true };
-  if (path === "/auth/change-password" && method === "POST") return { ok: true };
-
-  // ---- NOTIFICATIONS ----
-  if (path === "/notifications") return _M_NOTIFICATIONS;
-  if (path === "/notifications/unread-count") return { count: _M_NOTIFICATIONS.filter(n => !n.read).length };
-  if (path.match(/^\/notifications\/[^/]+\/read$/)) return { ok: true };
-  if (path === "/notifications/read-all") return { ok: true };
-
-  // ---- WALLETS ----
-  if (path === "/wallets" && method === "GET") return [];
-  if (path === "/wallets" && method === "POST") return { ok: true, id: "wl-" + _rand(), status: "pending_review" };
-  if (path.match(/^\/wallets\/[^/]+$/) && method === "DELETE") return { ok: true };
-
-  // ---- PORTFOLIO ----
-  if (path === "/portfolio") {
-    const total = _M_STOCK_POSITIONS.reduce((s, p) => s + p.market_value, 0);
-    return {
-      account: { cash_balance: _M_USER.cash_balance, available_balance: _M_USER.cash_balance, portfolio_value: total, cash: _M_USER.cash_balance, require_wallet_to_withdraw: false },
-      positions: _M_STOCK_POSITIONS,
-    };
-  }
-  if (path === "/portfolio/copy-traders" && method === "GET") return _M_TRADERS;
-  if (path === "/portfolio/my-copies") return [];
-  if (path.match(/^\/portfolio\/copy-traders\/[^/]+$/) && (method === "POST" || method === "DELETE")) return { ok: true };
-
-  // ---- LOANS ----
-  if (path === "/loans" && method === "GET") return [_M_LOANS[0]];
-  if (path === "/loans" && method === "POST") return { id: "loan-" + _rand(), status: "pending_review", created_at: _now(), ..._parseBody(opts) };
-
-  // ---- BANKING ----
-  if (path === "/banking/transfers") return [{ id: "tr-1", direction: "deposit", amount_usd: 5000, status: "completed", requested_at: _ago(10) }];
-  if (path === "/banking/links") return [{ id: "bl-1", bank_name: "Chase", account_last4: "1234" }];
-  if (path === "/banking/transfer" && method === "POST") return { ok: true, id: "tr-" + _rand() };
-  if (path === "/banking/withdraw/my-requests") return _M_WITHDRAWALS;
-  if (path === "/banking/withdraw/request" && method === "POST") return { ok: true, id: "wd-" + _rand(), status: "pending_admin" };
-  if (path.match(/^\/banking\/withdraw\/[^/]+\/resend$/)) return { ok: true };
-  if (path === "/banking/withdraw/confirm" && method === "POST") return { ok: true };
-
-  // ---- KYC ----
-  if (path === "/kyc" && method === "GET") return _M_KYC[0];
-  if (path === "/kyc" && method === "POST") return { ok: true, status: "pending_review" };
-
-  // ---- PLANS ----
-  if (path === "/plans" && method === "GET") return { plans: _M_PLANS };
-  if (path.match(/^\/plans\/[^/]+\/invest$/) && method === "POST") return { ok: true, amount: 100, matures_at: _ahead(30) };
-  if (path === "/plans/me") return { investments: _M_INVESTMENTS };
-
-  // ---- TOPUPS & SETTINGS ----
-  if (path === "/topups" && method === "POST") return { ok: true, id: "tu-" + _rand(), status: "pending" };
-  if (path === "/settings/public") return _M_PUBLIC_SETTINGS;
-  if (path === "/captcha/new") return { token: "cap_1234", image: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWdodD0iNjAiPjxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iNjAiIGZpbGw9IiMwYTE0MjgiLz48dGV4dCB4PSI4MCIgeT0iNDIiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IiM2MEE1RkEiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjEyMzQ8L3RleHQ+PC9zdmc+", expires_in: 300 };
-
-  // ---- SIGNALS & BOTS ----
-  if (path === "/signals") return { signals: _M_SIGNALS };
-  if (path === "/signals/me") return { active: true, tier: "premium", expires_at: _ahead(90) };
-  if (path.startsWith("/bots")) return _M_BOTS;
-  if (path === "/bots/me") return _M_BOT_INV;
-  if (path.match(/^\/bots\/[^/]+\/invest$/) && method === "POST") return { ok: true };
-
-  // ---- STOCK & CRYPTO ----
-  if (path.startsWith("/stock/search")) return { quotes: [{ symbol: "AAPL", shortname: "Apple Inc.", exchange: "NASDAQ", quoteType: "EQUITY" }, { symbol: "MSFT", shortname: "Microsoft Corp.", exchange: "NASDAQ", quoteType: "EQUITY" }] };
-  if (path.match(/^\/stock\/chart\//)) return { chart: { result: [{ timestamp: [1,2,3], indicators: { quote: [{ open: [1,2,3], high: [2,3,4], low: [0.5,1.5,2.5], close: [1.5,2.5,3.5] }] } }] } };
-  if (path === "/stock/positions") return { positions: _M_STOCK_POSITIONS };
-  if (path === "/stock/orders") return { orders: _M_STOCK_ORDERS };
-  if (path === "/stock/order" && method === "POST") return { ok: true, order: { id: "so-" + _rand(), status: "accepted" } };
-  
-  if (path === "/crypto-trade/markets") return { markets: _M_CRYPTO_MARKETS };
-  if (path.match(/^\/crypto-trade\/klines\//)) return { candles: [] };
-  if (path === "/crypto-trade/positions") return { positions: _M_CRYPTO_POSITIONS };
-  if (path === "/crypto-trade/trades") return _M_CRYPTO_TRADES;
-  if (path === "/crypto-trade/order" && method === "POST") return { ok: true, quantity: 0.1, price_usd: 68000 };
-  if (path === "/crypto-stake/plans") return { plans: _M_STAKE_PLANS };
-  if (path === "/crypto-stake/stakes") return { stakes: _M_STAKES };
-  if (path === "/crypto-stake/stake" && method === "POST") return { ok: true };
-
-  // ---- ADMIN ----
-  if (path === "/admin/users") return _M_USERS;
-  if (path === "/admin/kyc-queue") return _M_KYC;
-  if (path === "/admin/loans") return _M_LOANS;
-  if (path === "/admin/copy-traders") return _M_TRADERS;
-  if (path === "/admin/support-tickets") return _M_TICKETS;
-  if (path === "/admin/content") return _M_CONTENT;
-  if (path === "/admin/compliance-docs") return _M_DOCS;
-  if (path === "/admin/plans") return _M_PLANS;
-  if (path === "/admin/signals") return _M_SIGNALS;
-  if (path === "/admin/bots") return _M_BOTS;
-  if (path === "/admin/wallet-links") return _M_WALLET_LINKS;
-  if (path === "/admin/wallet-links/pending-count") return { count: 1 };
-  if (path === "/admin/apple-credentials") return _M_APPLE;
-  if (path === "/admin/withdrawals") return _M_WITHDRAWALS;
-  if (path === "/admin/login-events") return _M_LOGIN_EVENTS;
-  if (path === "/admin/login-events/stats") return { today: 8, week: 47, unique_users: 12, total: 234 };
-  if (path === "/admin/settings") return _M_SETTINGS;
-  if (path === "/admin/kyc-required") return { kyc_required: true };
-  if (path === "/admin/withdrawal-wallet-setting") return { require_wallet_to_withdraw: false };
-  if (path === "/admin/admins") return [_M_USER_ADMIN];
-  if (path.startsWith("/admin/crypto-live-prices")) return { prices: { BTC: { usd: 68450, gas_usd: 1.5 }, ETH: { usd: 3350, gas_usd: 2.1 } } };
-  
-  // Admin generic catch-all for POST/PATCH/DELETE
-  if (path.startsWith("/admin/") && method !== "GET") return { ok: true };
-
-  if (path === "/health") return { ok: true };
-  
-  console.warn("[MOCK] no route:", method, path);
-  return null;
-}
-
-function _parseBody(opts) {
-  try {
-    if (!opts.body) return {};
-    if (typeof opts.body === "string") return JSON.parse(opts.body);
-    return opts.body;
-  } catch (e) { return {}; }
-}
-function _rand() { return Math.random().toString(36).slice(2, 14); }
-
-// ---------- Api object ----------
-const Api = {
-  base: "/api",
-
-  token()      { return localStorage.getItem("wsc_token"); },
-  setToken(t)  { localStorage.setItem("wsc_token", t); },
-  clearToken() { localStorage.removeItem("wsc_token"); },
-
-  setUser(u) { localStorage.setItem("wsc_user", JSON.stringify(u)); },
-  user() {
-    try { return JSON.parse(localStorage.getItem("wsc_user")); }
-    catch { return null; }
-  },
-
-  async request(path, opts = {}) {
-    if (WSC_MOCK) {
-      await new Promise(r => setTimeout(r, 80 + Math.random() * 120));
-      const data = _mockRoute(path, opts);
-      if (data === null) {
-        throw new Error("Mock: no route for " + (opts.method || "GET") + " " + path);
-      }
-      return data;
-    }
-
-    const isFormData = opts.body instanceof FormData;
-    const headers = Object.assign(isFormData ? {} : { "Content-Type": "application/json" }, opts.headers || {});
-    if (this.token()) headers.Authorization = "Bearer " + this.token();
-
-    const res = await fetch(this.base + path, { ...opts, headers });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const msg = data.detail || data.message || data.error || `Request failed (${res.status})`;
-      throw new Error(msg);
-    }
-    return data;
-  },
-
-  notifications: {
-    list()       { return Api.request("/notifications"); },
-    unread()     { return Api.request("/notifications/unread-count"); },
-    markRead(id) { return Api.request(`/notifications/${id}/read`, { method: "POST" }); },
-    markAll()    { return Api.request("/notifications/read-all", { method: "POST" }); },
-  },
-
-  wallets: {
-    list()     { return Api.request("/wallets"); },
-    link(body) { return Api.request("/wallets", { method: "POST", body: JSON.stringify(body) }); },
-    unlink(id) { return Api.request(`/wallets/${id}`, { method: "DELETE" }); },
-  },
-
-  loans: {
-    mine()       { return Api.request("/loans"); },
-    submit(body) { return Api.request("/loans", { method: "POST", body: JSON.stringify(body) }); },
-  },
-
-  referrals: { mine() { return Api.request("/auth/referrals"); } },
-
-  prefs: {
-    update(body) { return Api.request("/auth/preferences", { method: "PATCH", body: JSON.stringify(body) }); },
-  },
-
-  password: {
-    change(body) { return Api.request("/auth/change-password", { method: "POST", body: JSON.stringify(body) }); },
-  },
-};
-
-function requireAuth() {
-  if (!Api.token()) window.location.href = "login.html";
-}
-
-function requireRole(role) {
-  const u = Api.user();
-  if (!u || u.role !== role) window.location.href = "login.html";
-}
-
-console.log("%c[MOCK API] active — no server needed", "color:#10B981;font-weight:bold;font-size:12px");
-console.log("%cLog in as admin@fcl.test (admin) or demo@fcl.test (user). Any password.", "color:#D4AF37;font-size:11px");
