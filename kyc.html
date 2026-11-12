@@ -4,7 +4,7 @@
 <base href="/FargoCapitol-/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Identity verification — Wall Street Capital</title>
+<title>Identity verification — Fargo Capitol</title>
 <script>
   (function(){
     var t = localStorage.getItem("wsc_theme") || "dark";
@@ -886,7 +886,7 @@ document.getElementById("btn-skip").addEventListener("click", (e) => {
   sessionStorage.setItem("wsc_kyc_skipped_at", new Date().toISOString());
 
   // Redirect to dashboard
-  window.location.href = "/dashboard.html#overview";
+  window.location.href = "dashboard.html#overview";
 });
 /* ---------- Init ---------- */
 showStep(1);
@@ -903,6 +903,7 @@ window.smartsupp||(function(d) {
 })(document);
 </script>
 <noscript>Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
-
+<script src="js/theme.js"></script>
+<script src="js/api.js"></script>
 </body>
 </html>
