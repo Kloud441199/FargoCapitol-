@@ -1,7 +1,7 @@
 // ============================================================
 // WSC API — MOCK MODE (no server needed)
 // ============================================================
-const WSC_MOCK = true;
+const WSC_MOCK = false;
 
 const _now = () => new Date().toISOString();
 const _ago = (d) => new Date(Date.now() - d * 86400000).toISOString();
@@ -300,7 +300,7 @@ function _rand() { return Math.random().toString(36).slice(2, 14); }
 
 // ---------- Api object ----------
 const Api = {
-  base: "https://fargocapitol-backend.onrender.com//api",
+  base: "https://fargocapitol-backend.onrender.com/api",
 
   token()      { return localStorage.getItem("wsc_token"); },
   setToken(t)  { localStorage.setItem("wsc_token", t); },
