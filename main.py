@@ -14,3 +14,5 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"status": "Fargo Capitol Backend is Live!"}
+
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
