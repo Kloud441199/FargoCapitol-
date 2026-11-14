@@ -10,7 +10,6 @@ from jose import jwt
 import os
 
 # --- 1. SETUP DATABASE ---
-# Uses a local SQLite file for the database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./fargo.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -101,6 +100,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             "cash_balance": db_user.balance
         }
     }
+
 # --- 7. SERVE FRONTEND FILES ---
 @app.get("/")
 def index_page():
@@ -122,9 +122,10 @@ def dashboard_page():
 def faq_page():
     return FileResponse("faq.html")
 
-# Serve the CSS and JS folders
+@app.get("/wsc-logo.png")
+def logo():
+    return FileResponse("wsc-logo.png")
+
+# Mount CSS and JS folders
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
-
-# THIS IS THE MAGIC FIX: Serve any other file (like wsc-logo.png) from the root folder
-app.mount("/", StaticFiles(directory="."), name="root_files")
