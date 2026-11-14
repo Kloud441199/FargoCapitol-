@@ -7,7 +7,6 @@ from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
 from jose import jwt
-import os
 
 # --- 1. SETUP DATABASE ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///./fargo.db"
@@ -126,6 +125,5 @@ def read_faq():
 def read_logo():
     return FileResponse("wsc-logo.png")
 
-# Serve the CSS and JS folders
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
