@@ -102,4 +102,30 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     }
 
 # --- 7. SERVE FRONTEND FILES (Must be at the bottom!) ---
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
+from fastapi.responses import FileResponse
+
+@app.get("/login.html")
+def login_page():
+    return FileResponse("login.html")
+
+@app.get("/signup.html")
+def signup_page():
+    return FileResponse("signup.html")
+
+@app.get("/dashboard.html")
+def dashboard_page():
+    return FileResponse("dashboard.html")
+
+@app.get("/faq.html")
+def faq_page():
+    return FileResponse("faq.html")
+
+# This serves the CSS, JS, and Images
+app.mount("/css", StaticFiles(directory="css"), name="css")
+app.mount("/js", StaticFiles(directory="js"), name="js")
+app.mount("/images", StaticFiles(directory="images"), name="images")
+
+# This serves the index page at the root
+@app.get("/")
+def index_page():
+    return FileResponse("index.html")
