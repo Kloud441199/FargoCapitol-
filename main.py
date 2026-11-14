@@ -103,29 +103,29 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 # --- 7. SERVE FRONTEND FILES ---
 @app.get("/")
-def index_page():
+def read_index():
     return FileResponse("index.html")
 
 @app.get("/login.html")
-def login_page():
+def read_login():
     return FileResponse("login.html")
 
 @app.get("/signup.html")
-def signup_page():
+def read_signup():
     return FileResponse("signup.html")
 
 @app.get("/dashboard.html")
-def dashboard_page():
+def read_dashboard():
     return FileResponse("dashboard.html")
 
 @app.get("/faq.html")
-def faq_page():
+def read_faq():
     return FileResponse("faq.html")
 
 @app.get("/wsc-logo.png")
-def logo():
+def read_logo():
     return FileResponse("wsc-logo.png")
 
-# Mount CSS and JS folders
+# Serve the CSS and JS folders
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
