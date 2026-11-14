@@ -101,8 +101,11 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             "cash_balance": db_user.balance
         }
     }
+# --- 7. SERVE FRONTEND FILES ---
+@app.get("/")
+def index_page():
+    return FileResponse("index.html")
 
-# --- 7. SERVE FRONTEND FILES (Must be at the bottom!) ---
 @app.get("/login.html")
 def login_page():
     return FileResponse("login.html")
@@ -119,11 +122,9 @@ def dashboard_page():
 def faq_page():
     return FileResponse("faq.html")
 
-# This serves the CSS, JS, and Images
+# Serve the CSS and JS folders
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
 
-# This serves the index page at the root
-@app.get("/")
-def index_page():
-    return FileResponse("index.html")
+# THIS IS THE MAGIC FIX: Serve any other file (like wsc-logo.png) from the root folder
+app.mount("/", StaticFiles(directory="."), name="root_files")
