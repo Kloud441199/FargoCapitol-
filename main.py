@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -102,8 +103,6 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     }
 
 # --- 7. SERVE FRONTEND FILES (Must be at the bottom!) ---
-from fastapi.responses import FileResponse
-
 @app.get("/login.html")
 def login_page():
     return FileResponse("login.html")
