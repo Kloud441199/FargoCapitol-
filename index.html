@@ -1066,11 +1066,32 @@
       z-index: 9999 !important;
     }
   }
-    /* Emerald Preloader Overrides */
-.wsc-preloader { background: #02140B !important; }
-.wsc-preloader-logo { background: rgba(6, 44, 24, 0.6) !important; border-color: rgba(212, 175, 55, 0.35) !important; }
-.wsc-preloader-tagline { color: #A7F3D0 !important; }
-.wsc-preloader-status { color: #6EE7B7 !important; }
+    
+/* Emerald Preloader Overrides */
+.wsc-preloader {
+  background: #02140B;
+}
+
+html[data-theme="light"] .wsc-preloader {
+  background: #F0F4FB;
+}
+
+.wsc-preloader-logo {
+  background: rgba(6, 44, 24, 0.6);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+html[data-theme="light"] .wsc-preloader-logo {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(184, 137, 43, 0.4);
+}
+
+.wsc-preloader-tagline { color: #A7F3D0; }
+html[data-theme="light"] .wsc-preloader-tagline { color: #506482; }
+
+.wsc-preloader-status { color: #6EE7B7; }
+html[data-theme="light"] .wsc-preloader-status { color: #5A6E8C; }
+
     
 </style>
 </head>
