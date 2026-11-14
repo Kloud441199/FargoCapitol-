@@ -101,29 +101,42 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     }
 
 # --- 7. SERVE FRONTEND FILES ---
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+# 1. Serve the API routes first (they are already defined above this)
+
+# 2. Serve the HTML files explicitly
 @app.get("/")
+@app.head("/")
 def read_index():
     return FileResponse("index.html")
 
 @app.get("/login.html")
+@app.head("/login.html")
 def read_login():
     return FileResponse("login.html")
 
 @app.get("/signup.html")
+@app.head("/signup.html")
 def read_signup():
     return FileResponse("signup.html")
 
 @app.get("/dashboard.html")
+@app.head("/dashboard.html")
 def read_dashboard():
     return FileResponse("dashboard.html")
 
 @app.get("/faq.html")
+@app.head("/faq.html")
 def read_faq():
     return FileResponse("faq.html")
 
 @app.get("/wsc-logo.png")
+@app.head("/wsc-logo.png")
 def read_logo():
     return FileResponse("wsc-logo.png")
 
+# 3. Mount the CSS and JS folders
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
