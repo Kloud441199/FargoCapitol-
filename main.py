@@ -122,7 +122,6 @@ def faq_page():
 # This serves the CSS, JS, and Images
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
-app.mount("/images", StaticFiles(directory="images"), name="images")
 
 # This serves the index page at the root
 @app.get("/")
