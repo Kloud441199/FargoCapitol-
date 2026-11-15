@@ -10,10 +10,11 @@ from jose import jwt
 import os
 
 # --- 1. SETUP DATABASE ---
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres.cakkyiymdnrhnkvsnfxl:7XlsUG5OCXXA7cuQ@aws-0-eu-west-1.pooler.supabase.com:6543/postgres")
 
-if not DATABASE_URL:
-    raise ValueError("No DATABASE_URL environment variable set!")
+# SQLAlchemy requires this specific prefix for the new psycopg3 driver
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
