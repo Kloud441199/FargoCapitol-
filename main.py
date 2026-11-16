@@ -215,6 +215,40 @@ def login(user: UserLogin, request: Request, db: Session = Depends(get_db)):
         }
     }
 
+
+# --- 6A. ADMIN API ---
+@app.get("/api/admin/users")
+def list_admin_users(request: Request, db: Session = Depends(get_db)):
+    authorization = request.headers.get("authorization", "")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        subject = payload.get("sub")
+        if not subject:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired authentication token")
+
+    admin = db.query(User).filter(func.lower(User.email) == subject.lower()).first()
+    if not admin or admin.role != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required")
+
+    users = db.query(User).order_by(User.id.asc()).all()
+    return [
+        {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role or "user",
+            "balance": float(user.balance or 0),
+        }
+        for user in users
+    ]
+
 # --- 7. SERVE FRONTEND FILES ---
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -241,6 +275,11 @@ def read_signup():
 @app.head("/dashboard.html")
 def read_dashboard():
     return FileResponse("dashboard.html")
+
+@app.get("/admin.html")
+@app.head("/admin.html")
+def read_admin():
+    return FileResponse("admin.html")
 
 @app.get("/faq.html")
 @app.head("/faq.html")
