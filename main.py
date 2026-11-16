@@ -10,11 +10,21 @@ from jose import jwt
 import os
 
 # --- 1. SETUP DATABASE ---
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres.cakkyiymdnrhnkvsnfxl:7XlsUG5OCXXA7cuQ@aws-0-eu-west-1.pooler.supabase.com:6543/postgres")
+# DATABASE_URL must be configured in the hosting provider's environment.
+# Never keep database credentials in source code or provide a hardcoded fallback.
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
 
-# SQLAlchemy requires this specific prefix for the new psycopg3 driver
-if DATABASE_URL.startswith("postgresql://"):
+# Normalize PostgreSQL URLs for SQLAlchemy's psycopg 3 driver.
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql+psycopg://"):
+    pass
+else:
+    raise RuntimeError("DATABASE_URL must use a PostgreSQL connection URL")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -33,7 +43,9 @@ class User(Base):
 Base.metadata.create_all(bind=engine)
 
 # --- 3. SECURITY SETUP ---
-SECRET_KEY = "fargo_capitol_super_secret"
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET environment variable is not set")
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
