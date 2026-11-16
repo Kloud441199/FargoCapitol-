@@ -58,7 +58,7 @@ def verify_password(plain, hashed):
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,29 +84,49 @@ def get_db():
 # --- 6. API ROUTES ---
 @app.post("/api/auth/signup")
 def signup(user: UserSignup, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
+    if len(user.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="Password must be 72 bytes or fewer")
+
+    email = user.email.strip().lower()
+    db_user = db.query(User).filter(User.email == email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     new_user = User(
-        email=user.email,
-        full_name=user.full_name,
+        email=email,
+        full_name=user.full_name.strip(),
         hashed_password=get_password_hash(user.password),
-        role="admin" if "admin" in user.email else "user"
+        role="admin" if "admin" in email else "user"
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "User created successfully"}
+
+    token = jwt.encode(
+        {"sub": new_user.email, "role": new_user.role},
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+    return {
+        "token": token,
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "full_name": new_user.full_name,
+            "role": new_user.role,
+            "cash_balance": new_user.balance
+        }
+    }
 
 @app.post("/api/auth/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.identifier).first()
+    email = user.identifier.strip().lower()
+    db_user = db.query(User).filter(User.email == email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    
+
     token = jwt.encode({"sub": db_user.email, "role": db_user.role}, SECRET_KEY, algorithm=ALGORITHM)
-    
+
     return {
         "token": token,
         "user": {
