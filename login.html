@@ -485,7 +485,7 @@ function routeAfterLogin(user) {
   var next = safeNext();
 
   if (isStaff) {
-    window.location.href = next || "admin/index.html";
+    window.location.href = next || "/admin.html";
   } else {
     window.location.href = "dashboard.html";
   }
