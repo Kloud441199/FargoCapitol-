@@ -261,6 +261,11 @@ from fastapi.staticfiles import StaticFiles
 def read_index():
     return FileResponse("index.html")
 
+@app.get("/index.html")
+@app.head("/index.html")
+def read_index_file():
+    return FileResponse("index.html")
+
 @app.get("/login.html")
 @app.head("/login.html")
 def read_login():
