@@ -3,239 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#02140B">
+<meta name="description" content="Fargo Capitol account dashboard">
 <title>Dashboard — Fargo Capitol</title>
 <script>
-  (function(){
-    var t = localStorage.getItem("wsc_theme") || "dark";
-    document.documentElement.setAttribute("data-theme", t);
-  })();
+(function(){try{var t=localStorage.getItem("fcl_theme")||localStorage.getItem("wsc_theme")||"dark";document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();
 </script>
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-  /* Dashboard Specific Styles */
-  .dash-app { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; position: relative; z-index: 1; }
-  @media (max-width: 900px) { .dash-app { grid-template-columns: 1fr; } }
-  
-  .dash-sidebar { background: rgba(2, 20, 11, 0.85); border-right: 1px solid var(--line-soft); backdrop-filter: blur(24px); padding: 22px 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-  @media (max-width: 900px) { .dash-sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; transform: translateX(-100%); transition: transform 0.3s; z-index: 60; height: 100dvh; } .dash-sidebar.open { transform: translateX(0); } }
-  
-  .sb-brand { display: flex; align-items: center; gap: 10px; padding: 8px 10px 20px; border-bottom: 1px solid var(--line-soft); margin-bottom: 18px; text-decoration: none; }
-  .sb-brand img { height: 40px; width: auto; }
-  
-  .sb-user { display: flex; flex-direction: column; align-items: center; padding: 16px 12px; background: rgba(6, 44, 24, 0.4); border: 1px solid var(--line-soft); border-radius: 14px; margin-bottom: 20px; text-align: center; }
-  .sb-avatar { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #10B981, #047857); display: flex; align-items: center; justify-content: center; color: #FFF; font-family: var(--serif); font-size: 20px; margin-bottom: 10px; position: relative; }
-  .sb-avatar::after { content: ""; position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--tick-up); border: 2px solid var(--bg); }
-  .sb-user .name { font-family: var(--serif); font-size: 14.5px; color: var(--text); margin-bottom: 2px; }
-  .sb-user .status { font-size: 11px; color: var(--tick-up); margin-bottom: 10px; }
-  .sb-balance { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 10px 12px; border-radius: 10px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.2); text-align: left; }
-  .sb-balance .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dimmer); }
-  .sb-balance .amount { font-family: var(--mono); font-size: 15px; color: var(--gold-bright); }
-  
-  .sb-group { margin-bottom: 16px; }
-  .sb-group-title { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dimmer); padding: 6px 12px; margin-bottom: 4px; font-weight: 600; }
-  .sb-link { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; font-size: 14px; color: var(--text-dim); text-decoration: none; transition: background 0.15s, color 0.15s; margin-bottom: 1px; cursor: pointer; }
-  .sb-link:hover { background: rgba(212, 175, 55, 0.08); color: var(--text); }
-  .sb-link.active { background: rgba(212, 175, 55, 0.14); color: var(--text); box-shadow: inset 3px 0 0 var(--gold); }
-  .sb-link svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--text-dimmer); }
-  .sb-link:hover svg, .sb-link.active svg { color: var(--gold-bright); }
-  
-  .dash-main { display: flex; flex-direction: column; min-width: 0; }
-  .dash-topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 26px; border-bottom: 1px solid var(--line-soft); background: rgba(2, 20, 11, 0.75); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 20; }
-  
-  .tb-left { display: flex; align-items: center; gap: 14px; }
-  .tb-burger { display: none; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text-dim); cursor: pointer; align-items: center; justify-content: center; }
-  @media (max-width: 900px) { .tb-burger { display: flex; } }
-  
-  .tb-title { font-family: var(--serif); font-size: 15.5px; color: var(--text); font-weight: 500; }
-  .tb-right { display: flex; align-items: center; gap: 12px; }
-  
-  .dash-content { padding: 24px 26px 50px; max-width: 1200px; width: 100%; }
-  @media (max-width: 700px) { .dash-content { padding: 18px; } }
-  
-  .overview-hero-card { width: 100%; max-width: 640px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 32px 28px 26px; backdrop-filter: blur(24px); text-align: center; position: relative; overflow: hidden; margin: 0 auto 24px; }
-  .ohc-amount { font-family: var(--mono); font-size: clamp(36px, 5.2vw, 52px); font-weight: 500; color: var(--text); line-height: 1.05; margin: 10px 0; }
-  .ohc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 460px; margin: 20px auto 0; }
-  
-  .section-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; backdrop-filter: blur(20px); margin-bottom: 20px; }
-  .section-card .sc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line-soft); }
-  .section-card .sc-head h3 { font-family: var(--serif); font-size: 16.5px; font-weight: 500; margin: 0; color: var(--text); }
-  
-  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  @media (max-width: 1000px) { .kpi-strip { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 500px) { .kpi-strip { grid-template-columns: 1fr; } }
-  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 16px 18px; }
-  .kpi .kpi-value { font-family: var(--mono); font-size: 20px; color: var(--text); margin-bottom: 4px; }
-  .kpi .kpi-label { font-size: 10px; text-transform: uppercase; color: var(--text-dimmer); font-weight: 600; }
-
-  .sb-backdrop { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px); z-index: 55; }
-  .sb-backdrop.show { display: block; }
-  @media (min-width: 901px) { .sb-backdrop { display: none !important; } }
+:root{--dash-sidebar:250px;--dash-rail:290px;--dash-surface:var(--panel);--dash-border:var(--line);--dash-muted:var(--text-dim)}
+html,body{min-height:100%;background:var(--bg);color:var(--text)}
+body{font-size:13px}
+.dash-app{display:grid;grid-template-columns:var(--dash-sidebar) minmax(0,1fr) var(--dash-rail);min-height:100vh;position:relative;z-index:1}
+.dash-sidebar{position:sticky;top:0;height:100vh;overflow:auto;padding:22px 14px 36px;background:var(--bg-2);border-right:1px solid var(--line-soft);z-index:50}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:8px 10px 20px;margin-bottom:18px;border-bottom:1px solid var(--line-soft);text-decoration:none;color:var(--text)}
+.sb-brand img{width:34px;height:34px;object-fit:contain}.sb-brand .mark{font:500 17px var(--serif);color:var(--text)}.sb-brand em{font-style:normal;color:var(--gold-bright)}
+.sb-user{display:flex;flex-direction:column;align-items:center;padding:16px 12px;background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;margin-bottom:20px;text-align:center}
+.sb-avatar,.tb-avatar,.rail-avatar{display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));color:#fff;font-family:var(--serif);font-weight:700}
+.sb-avatar{width:54px;height:54px;font-size:20px;margin-bottom:10px}.sb-user .name{font:500 14px var(--serif);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sb-user .status{font-size:11px;color:var(--tick-up);margin:3px 0 10px}
+.sb-balance{width:100%;padding:10px 12px;border-radius:10px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);text-align:left}.sb-balance .label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dimmer)}.sb-balance .amount{font:600 15px var(--mono);color:var(--gold-bright)}
+.sb-group{margin-bottom:16px}.sb-group-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dimmer);padding:6px 12px;margin-bottom:4px;font-weight:700}
+.sb-link,.sb-sub-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-size:13px;color:var(--text-dim);text-decoration:none;cursor:pointer;margin-bottom:2px;transition:.18s}
+.sb-link svg,.sb-sub-link svg{width:15px;height:15px;flex-shrink:0;color:var(--text-dimmer)}.sb-link:hover,.sb-sub-link:hover{background:rgba(212,175,55,.08);color:var(--text)}.sb-link.active,.sb-sub-link.active{background:rgba(212,175,55,.13);color:var(--text);box-shadow:inset 3px 0 var(--gold)}.sb-link.active svg,.sb-link:hover svg{color:var(--gold-bright)}
+.sb-link .nav-badge{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(5,150,105,.15);color:var(--tick-up);text-transform:uppercase}.sb-caret{margin-left:auto;width:12px!important;height:12px!important;transition:transform .2s}.sb-link.expanded .sb-caret{transform:rotate(90deg)}
+.sb-sub{display:none;margin:3px 0 8px 18px;padding-left:10px;border-left:1px solid var(--line-soft)}.sb-sub.open{display:block}.sb-sub-link{font-size:12px;padding:7px 10px}
+.dash-main{display:flex;flex-direction:column;min-width:0}.dash-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line-soft);background:var(--bg-2);position:sticky;top:0;z-index:25}
+.tb-left,.tb-right{display:flex;align-items:center;gap:12px;min-width:0}.tb-burger{display:none;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);cursor:pointer}.tb-burger svg{width:18px;height:18px}
+.tb-title-block{display:flex;flex-direction:column}.tb-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dimmer);font-weight:700}.tb-title{font:500 16px var(--serif);color:var(--text)}
+.tb-verified{font-size:10px;color:var(--tick-up);border:1px solid rgba(5,150,105,.35);border-radius:20px;padding:5px 10px;text-transform:uppercase;font-weight:700}.tb-icon-btn{position:relative;width:35px;height:35px;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--text-dim);cursor:pointer}.tb-icon-btn svg{width:16px;height:16px}.tb-icon-btn .dot{position:absolute;right:5px;top:5px;width:7px;height:7px;border-radius:50%;background:var(--tick-down)}
+.tb-user-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:22px;background:var(--panel);padding:4px 10px 4px 4px;cursor:pointer;max-width:230px}.tb-avatar{width:28px;height:28px;font-size:11px}.tb-user-chip .meta{display:flex;flex-direction:column;min-width:0}.tb-user-chip .name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tb-user-chip .email{font-size:10px;color:var(--text-dimmer);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-content{width:100%;max-width:1400px;margin:0 auto;padding:24px 26px 54px}.page{display:none}.page.active{display:block;animation:dashIn .25s ease}@keyframes dashIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.dash-greeting{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}.dash-greeting h1{font:500 clamp(19px,2.6vw,24px) var(--serif);margin:0 0 5px}.dash-greeting .date{font-size:12px;color:var(--text-dimmer)}.dash-actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:7px;padding:10px 15px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font:600 12px var(--sans);text-decoration:none;cursor:pointer;transition:.2s}.btn:hover{border-color:var(--gold);transform:translateY(-1px)}.btn-solid{background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));border-color:transparent;color:#17210f}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.overview-hero-card,.section-card,.kpi,.rail-card,.wallet-card,.tc-card,.form-card,.plan-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:20px;backdrop-filter:blur(18px)}
+.overview-hero-card{padding:25px;margin-bottom:18px;background:linear-gradient(135deg,rgba(212,175,55,.11),var(--panel) 65%)}.ohc-label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim)}.ohc-amount{font:500 clamp(30px,4.4vw,44px) var(--mono);margin:8px 0;color:var(--text)}.ohc-sub{font-size:12px;color:var(--text-dimmer)}.ohc-actions{display:flex;gap:9px;margin-top:18px}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.kpi{padding:15px}.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dimmer);font-weight:700}.kpi-value{font:600 19px var(--mono);margin:8px 0 3px}.kpi-sub{font-size:11px;color:var(--text-dimmer)}
+.section-card{margin-bottom:18px;padding:19px}.sc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--line-soft)}.sc-head h3{font:500 15px var(--serif);margin:0}.sc-head a{font-size:11px;color:var(--gold-bright);cursor:pointer;text-decoration:none}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}.qa-tile{display:flex;flex-direction:column;align-items:center;padding:17px 10px;border:1px solid var(--line);border-radius:13px;background:var(--panel);text-decoration:none;color:var(--text);cursor:pointer}.qa-tile:hover{border-color:var(--gold);transform:translateY(-2px)}.qa-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:rgba(212,175,55,.14);color:var(--gold-bright);margin-bottom:8px}.qa-icon svg{width:19px;height:19px}.qa-label{font:500 13px var(--serif)}.qa-sub{font-size:10px;color:var(--text-dimmer)}
+.link-wallet-card{padding:22px;border-radius:15px;border:1px solid rgba(212,175,55,.25);background:linear-gradient(120deg,rgba(212,175,55,.1),var(--panel));margin-bottom:18px}.link-wallet-card h3{font:500 18px var(--serif);margin:0 0 7px}.link-wallet-card p{font-size:12px;color:var(--text-dim);max-width:620px;line-height:1.6;margin:0 0 14px}
+.table-wrap{width:100%;overflow-x:auto}.data-table{width:100%;border-collapse:collapse;min-width:520px}.data-table th,.data-table td{text-align:left;padding:10px 9px;border-bottom:1px solid var(--line-soft);font-size:12px}.data-table th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dimmer)}.data-table td{color:var(--text-dim)}.data-table td.mono{font-family:var(--mono);color:var(--text)}.empty-state{padding:28px 15px;text-align:center;color:var(--text-dimmer);font-size:12px}.muted{color:var(--text-dimmer)}.positive{color:var(--tick-up)!important}.negative{color:var(--tick-down)!important}
+.dash-rail{position:sticky;top:0;height:100vh;overflow:auto;padding:20px 16px;background:var(--bg-2);border-left:1px solid var(--line-soft)}.rail-card{margin-bottom:13px;padding:16px}.rail-user{text-align:center}.rail-avatar{width:58px;height:58px;font-size:22px;margin:0 auto 10px}.rail-user .name-lg{font:500 15px var(--serif)}.member-since{font-size:10px;color:var(--tick-up);margin-top:4px}.rail-stats .rs-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:11px}.rs-label{color:var(--text-dim)}.rs-value{font:600 11px var(--mono)}.rail-actions{display:flex;gap:7px;margin-top:12px}.rail-actions .btn{flex:1;padding:8px 5px;font-size:10px}.refer-box{display:flex;gap:5px;margin-top:8px}.refer-box input{min-width:0;width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:10px}
+.wallet-grid,.tc-grid,.plans-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.wallet-card,.tc-card,.plan-card{padding:16px}.wallet-card h3,.tc-card h3,.plan-card h3{font:500 15px var(--serif);margin:0 0 5px}.wallet-card p,.plan-card p,.tc-card p{font-size:11px;color:var(--text-dim);line-height:1.55}.wallet-card .wallet-meta{font-size:10px;color:var(--text-dimmer);margin-bottom:12px}.wallet-card .btn,.tc-card .btn,.plan-card .btn{width:100%}
+.form-card{max-width:600px}.field{margin-bottom:14px}.field label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid var(--input-border);border-radius:9px;background:var(--input-bg);color:var(--text);font:13px var(--sans)}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--input-border-focus);outline:none}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}.tab{border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--text-dim);padding:7px 12px;font-size:11px;cursor:pointer}.tab.active{border-color:var(--gold);color:var(--gold-bright);background:rgba(212,175,55,.1)}
+.coming-page{padding:55px 20px;text-align:center;border:1px dashed var(--line);border-radius:15px}.coming-page h2{font:500 22px var(--serif);margin:0 0 8px}.coming-page p{max-width:480px;margin:0 auto;color:var(--text-dim);font-size:12px;line-height:1.6}
+.modal-backdrop{display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:16px}.modal-backdrop.open{display:flex}.modal{width:100%;max-width:470px;max-height:90vh;overflow:auto;background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.4)}.modal-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line-soft);padding-bottom:12px;margin-bottom:15px}.modal-head h3{font:500 17px var(--serif);margin:0}.modal-close{width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--text);cursor:pointer}
+.notif-panel,.profile-panel{display:none;position:absolute;right:20px;top:58px;width:min(330px,calc(100vw - 30px));background:var(--bg-2);border:1px solid var(--line);border-radius:13px;padding:13px;box-shadow:0 16px 45px rgba(0,0,0,.35);z-index:90}.notif-panel.open,.profile-panel.open{display:block}.notif-item{padding:10px 4px;border-bottom:1px solid var(--line-soft);font-size:11px}.notif-item:last-child{border:0}.notif-item p{color:var(--text-dim);margin:4px 0}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:45}.sb-backdrop.show{display:block}.mobile-nav{display:none}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:10px 15px;font-size:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);max-width:90vw}
+#portfolio-canvas{width:100%;height:190px;display:block}
+@media(max-width:1200px){.dash-app{grid-template-columns:var(--dash-sidebar) minmax(0,1fr)}.dash-rail{display:none}}
+@media(max-width:900px){.dash-app{display:block}.dash-sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;height:100dvh;transform:translateX(-105%);transition:transform .25s;z-index:60}.dash-sidebar.open{transform:translateX(0)}.tb-burger{display:grid;place-items:center}.dash-topbar{padding:12px 15px}.dash-content{padding:18px 15px 85px}.mobile-nav{position:fixed;display:flex;left:10px;right:10px;bottom:10px;z-index:40;justify-content:space-around;padding:8px;background:var(--bg-2);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.3)}.mobile-nav button{border:0;background:transparent;color:var(--text-dim);font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px}.mobile-nav svg{width:17px;height:17px}.tb-right{gap:7px}.tb-user-chip .meta{display:none}}
+@media(max-width:650px){.kpi-strip{grid-template-columns:1fr 1fr}.wallet-grid,.tc-grid,.plans-grid{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr 1fr}.dash-greeting h1{font-size:20px}.tb-verified{display:none}.overview-hero-card{padding:19px}.rail-card{display:none}}
+@media(max-width:390px){.kpi-strip{grid-template-columns:1fr}.tb-title{font-size:14px}}
 </style>
 </head>
 <body>
-
 <div class="auth-bg"></div>
-
-<button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle theme">
-  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-</button>
-
-<div class="dash-app" id="dash-app"></div>
-
-<script src="/js/theme.js"></script>
+<button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg></button>
+<div class="dash-app" id="dash-app">
+  <div class="sb-backdrop" id="sb-backdrop"></div>
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <a class="sb-brand" href="/"><img src="/assets/fcl-logo.svg" alt="Fargo Capitol"><span class="mark">Fargo <em>Capitol</em></span></a>
+    <div class="sb-user"><div class="sb-avatar" id="sb-avatar">F</div><div class="name" id="sb-name">Loading account…</div><div class="status">Account</div><div class="sb-balance"><div class="label">Available balance</div><div class="amount" id="sb-balance-value">—</div></div></div>
+    <nav id="sidebar-nav">
+      <div class="sb-group"><div class="sb-group-title">Main</div><a class="sb-link active" data-page="overview"><span>⌂</span>Dashboard</a></div>
+      <div class="sb-group"><div class="sb-group-title">Portfolio &amp; Investments</div><a class="sb-link" data-page="portfolio">◫ Portfolio Overview</a><a class="sb-link" data-page="history">▤ Account Statement</a><a class="sb-link" data-page="plans-page">▦ Investment Plans</a><a class="sb-link" data-toggle="trading">↗ Trading <span class="sb-caret">›</span></a><div class="sb-sub" data-sub="trading"><a class="sb-sub-link" data-page="stock-mkt">Stock Market</a><a class="sb-sub-link" data-page="crypto">Crypto Trading</a></div></div>
+      <div class="sb-group"><div class="sb-group-title">Plans &amp; Services</div><a class="sb-link" data-page="plans-page">▧ Plans</a><a class="sb-link" data-page="services">◇ Services</a></div>
+      <div class="sb-group"><div class="sb-group-title">Wallet &amp; Funds</div><a class="sb-link" data-page="wallet">▣ Link Wallet</a><a class="sb-link" data-page="fund">↓ Fund Account</a><a class="sb-link" data-page="withdraw">↑ Withdraw Funds</a><a class="sb-link" data-page="copy">⇄ Copy Trading</a></div>
+      <div class="sb-group"><div class="sb-group-title">Account</div><a class="sb-link" data-page="settings">⚙ Account Settings</a></div>
+      <div class="sb-group"><a class="sb-link" href="login.html" id="logout-link">↪ Log out</a></div>
+    </nav>
+  </aside>
+  <main class="dash-main">
+    <header class="dash-topbar"><div class="tb-left"><button class="tb-burger" id="tb-burger" aria-label="Open menu">☰</button><div class="tb-title-block"><span class="tb-eyebrow" id="tb-eyebrow">Overview</span><span class="tb-title" id="tb-title">Dashboard</span></div></div><div class="tb-right"><span class="tb-verified" id="tb-verified">Account</span><button class="tb-icon-btn" id="notif-button" aria-label="Notifications">♧<span class="dot" id="notif-dot" hidden></span></button><div class="notif-panel" id="notif-panel"><div class="sc-head"><h3>Notifications</h3><button class="btn" id="notif-mark-all">Mark all read</button></div><div id="notif-list" class="muted">Loading…</div></div><button class="tb-user-chip" id="profile-button"><span class="tb-avatar" id="tb-avatar">F</span><span class="meta"><span class="name" id="tb-name">Account</span><span class="email" id="tb-email"> </span></span></button></div></header>
+    <div class="profile-panel" id="profile-panel"><strong id="profile-name">Account</strong><p class="muted" id="profile-email"></p><button class="btn" data-page="settings">Account settings</button><button class="btn" id="profile-logout">Log out</button></div>
+    <main class="dash-content" id="dash-content">
+      <section class="page active" id="page-overview"><div class="empty-state">Loading your dashboard…</div></section>
+      <section class="page" id="page-portfolio"></section><section class="page" id="page-wallet"></section><section class="page" id="page-copy"></section><section class="page" id="page-crypto"></section><section class="page" id="page-stock-mkt"></section><section class="page" id="page-fund"></section><section class="page" id="page-withdraw"></section><section class="page" id="page-history"></section><section class="page" id="page-settings"></section><section class="page" id="page-plans-page"></section><section class="page" id="page-services"></section>
+      <section class="page" id="page-loans"></section><section class="page" id="page-loan-history"></section><section class="page" id="page-signals"></section><section class="page" id="page-refer"></section><section class="page" id="page-affiliate"></section><section class="page" id="page-staking"></section><section class="page" id="page-trading"></section><section class="page" id="page-returns"></section>
+    </main>
+  </main>
+  <aside class="dash-rail">
+    <div class="rail-card rail-user"><div class="rail-avatar" id="rail-avatar">F</div><div class="name-lg" id="rail-name">Account</div><div class="member-since" id="member-since">Member</div></div>
+    <div class="rail-card"><div class="sc-head"><h3>Account summary</h3></div><div class="rail-stats"><div class="rs-row"><span class="rs-label">Balance</span><strong class="rs-value" id="rail-balance">—</strong></div><div class="rs-row"><span class="rs-label">Portfolio value</span><strong class="rs-value" id="rail-portfolio">—</strong></div><div class="rs-row"><span class="rs-label">KYC status</span><strong class="rs-value" id="rail-kyc">—</strong></div></div><div class="rail-actions"><button class="btn btn-solid" data-page="fund">Fund</button><button class="btn" data-page="withdraw">Withdraw</button></div></div>
+    <div class="rail-card"><div class="sc-head"><h3>Referral link</h3></div><div class="refer-box"><input id="refer-input" readonly value=""><button class="btn" id="refer-copy">Copy</button></div></div>
+  </aside>
+</div>
+<nav class="mobile-nav"><button data-page="overview">⌂<span>Home</span></button><button data-page="portfolio">◫<span>Portfolio</span></button><button data-page="fund">↓<span>Fund</span></button><button data-page="copy">⇄<span>Copy</span></button><button data-page="settings">⚙<span>Account</span></button></nav>
+<div class="modal-backdrop" id="copy-modal-backdrop"><div class="modal"><div class="modal-head"><h3>Start copy trading</h3><button class="modal-close" data-close="copy-modal-backdrop">×</button></div><div id="cm-trader" class="muted"></div><div class="field"><label for="cm-amount">Investment amount (USD)</label><input id="cm-amount" type="number" min="1" step="0.01" placeholder="Amount"></div><div class="muted" id="cm-bal-sub">Available: —</div><div class="field"><label for="cm-source">Payment source</label><select id="cm-source"><option value="balance">Account balance</option></select></div><p id="cm-error" class="negative" role="alert"></p><button class="btn btn-solid" id="cm-confirm">Confirm &amp; start</button></div></div>
+<div class="modal-backdrop" id="wallet-modal-backdrop"><div class="modal"><div class="modal-head"><h3>Link a wallet</h3><button class="modal-close" data-close="wallet-modal-backdrop">×</button></div><p class="muted">Only provide a public wallet address. Fargo Capitol will never ask for your seed phrase or private key.</p><form id="wallet-link-form"><div class="field"><label for="wallet-provider">Wallet</label><select id="wallet-provider"><option value="metamask">MetaMask</option><option value="trustwallet">Trust Wallet</option><option value="coinbase">Coinbase Wallet</option><option value="phantom">Phantom</option><option value="other">Other</option></select></div><div class="field"><label for="wallet-chain">Network</label><input id="wallet-chain" required placeholder="e.g. Ethereum"></div><div class="field"><label for="wallet-address">Public wallet address</label><textarea id="wallet-address" required placeholder="Paste public address only"></textarea></div><p id="wallet-link-error" class="negative"></p><button class="btn btn-solid" type="submit">Submit wallet for review</button></form></div></div>
 <script src="/js/api.js"></script>
 <script>
-  requireAuth(); // Checks if user is logged in
-
-  // 1. Generate the Dashboard Layout HTML
-  const app = document.getElementById("dash-app");
-  const user = Api.user() || { full_name: "Demo User", email: "demo@fcl.test" };
-  const userName = user.full_name || "User";
-
-  app.innerHTML = `
-    <div class="sb-backdrop" id="sb-backdrop"></div>
-    
-    <!-- SIDEBAR -->
-    <aside class="dash-sidebar" id="dash-sidebar">
-      <a class="sb-brand" href="index.html">
-        <img src="/wsc-logo.png" alt="Fargo Capitol">
-      </a>
-      
-      <div class="sb-user">
-        <div class="sb-avatar">${userName.charAt(0)}</div>
-        <div class="name">${userName}</div>
-        <div class="status">Online</div>
-        <div class="sb-balance">
-          <div class="label">Balance</div>
-          <div class="amount" id="sb-balance-value">$25,000.00</div>
-        </div>
-      </div>
-      
-      <div class="sb-group">
-        <div class="sb-group-title">Main</div>
-        <a class="sb-link active" data-page="overview">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-          <span>Dashboard</span>
-        </a>
-      </div>
-      
-      <div class="sb-group">
-        <div class="sb-group-title">Finance</div>
-        <a class="sb-link" data-page="fund">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v14"/><path d="m19 10-7 7-7-7"/><path d="M5 21h14"/></svg>
-          <span>Fund Account</span>
-        </a>
-        <a class="sb-link" data-page="withdraw">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V7"/><path d="m5 14 7-7 7 7"/><path d="M5 3h14"/></svg>
-          <span>Withdraw Funds</span>
-        </a>
-        <a class="sb-link" data-page="history">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-          <span>Transaction History</span>
-        </a>
-      </div>
-      
-      <div class="sb-group">
-        <div class="sb-group-title">Account</div>
-        <a class="sb-link" data-page="settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Account Settings</span>
-        </a>
-      </div>
-      
-      <div class="sb-group" style="margin-top: 30px; border-top: 1px solid var(--line-soft); padding-top: 20px;">
-        <a class="sb-link" onclick="Api.clearToken(); window.location.href='login.html';" style="color: var(--tick-down);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-          <span>Log Out</span>
-        </a>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <div class="dash-main">
-      <header class="dash-topbar">
-        <div class="tb-left">
-          <button class="tb-burger" id="tb-burger">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-          </button>
-          <div class="tb-title">Dashboard Overview</div>
-        </div>
-        <div class="tb-right">
-          <span class="tb-verified">Verified</span>
-          <div style="font-size: 13px; color: var(--text-dim);">${user.email}</div>
-        </div>
-      </header>
-
-      <main class="dash-content" id="dash-content"></main>
-    </div>
-  `;
-
-  // 2. Page Content Templates
-  const pages = {
-    overview: `
-      <div class="overview-hero-card">
-        <div style="font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Total Portfolio Balance</div>
-        <div class="ohc-amount">$25,000.00</div>
-        <div style="color: var(--tick-up); font-size: 13px; margin-bottom: 20px;">● Available for Withdrawal</div>
-        <div class="ohc-actions">
-          <a class="btn btn-solid" data-page="fund">Deposit</a>
-          <a class="btn" data-page="withdraw">Withdraw</a>
-        </div>
-      </div>
-      
-      <div class="kpi-strip">
-        <div class="kpi"><div class="kpi-label">Active Investments</div><div class="kpi-value">3</div></div>
-        <div class="kpi"><div class="kpi-label">Total Profit</div><div class="kpi-value up" style="color:var(--tick-up)">+$1,245.50</div></div>
-        <div class="kpi"><div class="kpi-label">Pending Deposits</div><div class="kpi-value">0</div></div>
-        <div class="kpi"><div class="kpi-label">Account Status</div><div class="kpi-value">Tier 1</div></div>
-      </div>
-
-      <div class="section-card">
-        <div class="sc-head"><h3>Recent Activity</h3></div>
-        <p style="color: var(--text-dim); font-size: 14px;">No recent transactions found.</p>
-      </div>
-    `,
-    fund: `<div class="section-card"><div class="sc-head"><h3>Fund Account</h3></div><p>Funding options will go here.</p></div>`,
-    withdraw: `<div class="section-card"><div class="sc-head"><h3>Withdraw Funds</h3></div><p>Withdrawal form will go here.</p></div>`,
-    history: `<div class="section-card"><div class="sc-head"><h3>Transaction History</h3></div><p>Your history will go here.</p></div>`,
-    settings: `<div class="section-card"><div class="sc-head"><h3>Account Settings</h3></div><p>Settings will go here.</p></div>`
-  };
-
-  // 3. Page Navigation Logic
-  function loadPage(pageKey) {
-    document.getElementById("dash-content").innerHTML = pages[pageKey] || pages.overview;
-    
-    // Update active link
-    document.querySelectorAll(".sb-link").forEach(l => l.classList.remove("active"));
-    const activeLink = document.querySelector(`.sb-link[data-page="${pageKey}"]`);
-    if (activeLink) activeLink.classList.add("active");
-
-    // Close mobile sidebar
-    document.getElementById("dash-sidebar").classList.remove("open");
-    document.getElementById("sb-backdrop").classList.remove("show");
-  }
-
-  // 4. Wire up the clicks
-  document.querySelectorAll("[data-page]").forEach(link => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      loadPage(link.dataset.page);
-    });
-  });
-
-  // 5. Mobile Burger Menu
-  document.getElementById("tb-burger").addEventListener("click", () => {
-    document.getElementById("dash-sidebar").classList.add("open");
-    document.getElementById("sb-backdrop").classList.add("show");
-  });
-  document.getElementById("sb-backdrop").addEventListener("click", () => {
-    document.getElementById("dash-sidebar").classList.remove("open");
-    document.getElementById("sb-backdrop").classList.remove("show");
-  });
-
-  // 6. Load initial page
-  loadPage("overview");
+(function(){
+"use strict";
+if(typeof requireAuth==="function"){requireAuth();}
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var state={page:"overview",user:(window.Api&&Api.user&&Api.user())||{},portfolio:null,transactions:[],wallets:[],traders:[],copies:[],plans:[],kyc:null,notifications:[],currency:"USD",expanded:{trading:false}};
+var meta={overview:["Overview","Dashboard"],portfolio:["Portfolio","Holdings & performance"],wallet:["Wallets","Link wallet"],copy:["Trading","Copy trading"],crypto:["Markets","Crypto trading"],"stock-mkt":["Markets","Stock market"],fund:["Wallet & funds","Fund account"],withdraw:["Wallet & funds","Withdraw funds"],history:["Finance","Account statement"],settings:["Account","Account settings"],"plans-page":["Investments","Investment plans"],services:["Plans & services","Services"],loans:["Credit","Loan application"],"loan-history":["Credit","Loan history"],signals:["Premium","Signals"],refer:["Rewards","Refer & earn"],affiliate:["Rewards","Affiliate program"],staking:["Markets","Staking"],trading:["Markets","Trading"],returns:["Portfolio","Performance history"]};
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fullName(u){return u.full_name||u.username||(u.email||"").split("@")[0]||"Account";}
+function initials(s){var p=String(s||"F").trim().split(/\s+/);return p.length>1?(p[0][0]+p[1][0]).toUpperCase():p[0].slice(0,2).toUpperCase();}
+function money(n){var v=Number(n);if(!Number.isFinite(v))return "—";return (state.currency==="EUR"?"€":"$")+v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function zeroPlan(){return !state.user.plan_id&&!state.user.plan;}
+function acct(){return state.portfolio&&state.portfolio.account||{};}
+function rawBalance(){var a=acct();var n=a.available_balance??a.cash_balance??a.balance??a.cash??state.user.cash_balance;return Number(n||0);}
+function balanceDisplay(){return zeroPlan()||rawBalance()===0?money(0):money(rawBalance());}
+function toast(msg){var el=document.createElement("div");el.className="toast";el.textContent=msg;document.body.appendChild(el);setTimeout(function(){el.remove();},3200);}
+function req(path,opts){if(!window.Api||typeof Api.request!=="function")return Promise.reject(new Error("API client is unavailable."));return Api.request(path,opts||{});}
+function setPage(page){if(!$("#page-"+page))page="overview";state.page=page;$$(".page").forEach(function(el){el.classList.toggle("active",el.id==="page-"+page);});$$("[data-page]").forEach(function(el){el.classList.toggle("active",el.dataset.page===page);});var m=meta[page]||meta.overview;$("#tb-eyebrow").textContent=m[0];$("#tb-title").textContent=m[1];closeSidebar();if(page==="copy")renderCopy();if(page==="wallet")renderWallets();if(page==="plans-page")renderPlans();}
+function closeSidebar(){$("#dash-sidebar").classList.remove("open");$("#sb-backdrop").classList.remove("show");}
+function navigateFromEvent(e){var p=e.target.closest("[data-page]");if(p){e.preventDefault();setPage(p.dataset.page);}}
+function syncUser(){var n=fullName(state.user),i=initials(n);["sb-avatar","tb-avatar","rail-avatar"].forEach(function(id){var el=$("#"+id);if(el)el.textContent=i;});["sb-name","tb-name","rail-name","profile-name"].forEach(function(id){var el=$("#"+id);if(el)el.textContent=n;});["tb-email","profile-email"].forEach(function(id){var el=$("#"+id);if(el)el.textContent=state.user.email||"";});var since=state.user.created_at?new Date(state.user.created_at).toLocaleDateString(undefined,{month:"long",year:"numeric"}):"—";$("#member-since").textContent="Member since "+since;var code=state.user.referral_code||state.user.username||"";$("#refer-input").value=code?location.origin+"/r/"+code:"";$("#tb-verified").textContent=state.kyc&&state.kyc.status==="approved"?"Verified":(state.kyc&&state.kyc.status?String(state.kyc.status).replace(/_/g," "):"Verification pending");$("#rail-kyc").textContent=state.kyc&&state.kyc.status?String(state.kyc.status).replace(/_/g," "):"—";}
+function syncBalances(){var b=balanceDisplay();["sb-balance-value","rail-balance"].forEach(function(id){var el=$("#"+id);if(el)el.textContent=b;});$("#rail-portfolio").textContent=state.portfolio&&state.portfolio.account?money(state.portfolio.account.portfolio_value):"—";}
+function pageHeading(title,sub,actions){return '<div class="dash-greeting"><div><h1>'+esc(title)+'</h1><div class="date">'+esc(sub||"")+'</div></div><div class="dash-actions">'+(actions||"")+'</div></div>';}
+function table(headers,rows,empty){if(!rows||!rows.length)return '<div class="empty-state">'+esc(empty||"No records to show yet.")+'</div>';return '<div class="table-wrap"><table class="data-table"><thead><tr>'+headers.map(function(h){return "<th>"+esc(h)+"</th>";}).join("")+'</tr></thead><tbody>'+rows.join("")+'</tbody></table></div>';}
+function loadOverview(){var a=acct(),pos=Array.isArray(state.portfolio&&state.portfolio.positions)?state.portfolio.positions:[];var bal=balanceDisplay();var pv=state.portfolio&&a.portfolio_value!=null?money(a.portfolio_value):"—";var kyc=state.kyc&&state.kyc.status?String(state.kyc.status).replace(/_/g," "):"Not started";var active=pos.length?String(pos.length):"—";var pl=state.portfolio&&state.portfolio.unrealized_pl!=null?money(state.portfolio.unrealized_pl):"—";var empty=zeroPlan()||rawBalance()===0;
+$("#page-overview").innerHTML=pageHeading("Welcome back, "+fullName(state.user),new Date().toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"}),'<button class="btn btn-solid" data-page="fund">Fund account</button><button class="btn" data-page="plans-page">View plans</button>')+
+'<div class="overview-hero-card"><div class="ohc-label">Account balance</div><div class="ohc-amount">'+bal+'</div><div class="ohc-sub">'+(empty?"Your account is ready when you are.":"Current available balance")+'</div><div class="ohc-actions"><button class="btn btn-solid" data-page="fund">Fund account</button><button class="btn" data-page="withdraw">Withdraw</button></div></div>'+
+(empty?'<div class="link-wallet-card"><h3>Choose an account tier to get started</h3><p>Your balance is shown as zero until your account has a funded plan. Review the available account tiers before proceeding.</p><button class="btn btn-solid" data-page="plans-page">Explore account plans</button></div>':'')+
+'<div class="kpi-strip"><div class="kpi"><div class="kpi-label">Portfolio value</div><div class="kpi-value">'+pv+'</div><div class="kpi-sub">From available portfolio data</div></div><div class="kpi"><div class="kpi-label">Cost basis</div><div class="kpi-value">'+(state.portfolio&&a.cost_basis!=null?money(a.cost_basis):"—")+'</div><div class="kpi-sub">Invested capital</div></div><div class="kpi"><div class="kpi-label">Profit / loss</div><div class="kpi-value">'+pl+'</div><div class="kpi-sub">Unrealized result</div></div><div class="kpi"><div class="kpi-label">Active assets</div><div class="kpi-value">'+active+'</div><div class="kpi-sub">Positions returned by account</div></div></div>'+
+'<div class="quick-actions"><button class="qa-tile" data-page="fund"><span class="qa-icon">↓</span><span class="qa-label">Deposit</span><span class="qa-sub">Fund account</span></button><button class="qa-tile" data-page="withdraw"><span class="qa-icon">↑</span><span class="qa-label">Withdraw</span><span class="qa-sub">Request withdrawal</span></button><button class="qa-tile" data-page="copy"><span class="qa-icon">⇄</span><span class="qa-label">Copy trading</span><span class="qa-sub">Explore traders</span></button><button class="qa-tile" data-page="wallet"><span class="qa-icon">▣</span><span class="qa-label">Wallets</span><span class="qa-sub">Manage connections</span></button></div>'+
+'<div class="section-card"><div class="sc-head"><h3>Recent activity</h3><a data-page="history">View statement →</a></div>'+table(["Date","Type","Amount","Status"],state.transactions.slice(0,5).map(function(t){return '<tr><td>'+esc(t.created_at||t.requested_at||"—")+'</td><td>'+esc(t.type||t.kind||"Transaction")+'</td><td class="mono">'+(t.amount_usd!=null?money(t.amount_usd):"—")+'</td><td>'+esc(t.status||"—")+'</td></tr>';}),"No recent transactions were returned.")+'</div>';
+}
+function loadPortfolio(){var p=state.portfolio||{},a=p.account||{},pos=Array.isArray(p.positions)?p.positions:[];var total=a.portfolio_value!=null?money(a.portfolio_value):"—";$("#page-portfolio").innerHTML=pageHeading("Portfolio overview","Your account positions and performance",'<button class="btn btn-solid" data-page="fund">Fund account</button>')+'<div class="kpi-strip"><div class="kpi"><div class="kpi-label">Portfolio value</div><div class="kpi-value">'+total+'</div></div><div class="kpi"><div class="kpi-label">Cash balance</div><div class="kpi-value">'+balanceDisplay()+'</div></div><div class="kpi"><div class="kpi-label">Cost basis</div><div class="kpi-value">'+(a.cost_basis!=null?money(a.cost_basis):"—")+'</div></div><div class="kpi"><div class="kpi-label">Positions</div><div class="kpi-value">'+(pos.length||"—")+'</div></div></div><div class="section-card"><div class="sc-head"><h3>Holdings</h3></div>'+table(["Asset","Quantity","Market value","P/L"],pos.map(function(x){return '<tr><td>'+esc(x.symbol||x.name||x.base_asset||"—")+'</td><td class="mono">'+esc(x.qty??x.quantity??"—")+'</td><td class="mono">'+(x.market_value!=null?money(x.market_value):"—")+'</td><td class="'+(Number(x.unrealized_pl)>=0?"positive":"negative")+'">'+(x.unrealized_pl!=null?money(x.unrealized_pl):"—")+'</td></tr>';}),"No holdings returned by the portfolio service.")+'</div><div class="section-card"><div class="sc-head"><h3>Portfolio allocation</h3></div><canvas id="portfolio-canvas" width="900" height="190"></canvas></div>';drawPortfolio(pos);}
+function drawPortfolio(pos){var c=$("#portfolio-canvas");if(!c||!pos.length)return;var ctx=c.getContext("2d"),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);var vals=pos.map(function(p){return Number(p.market_value)||0;}),max=Math.max.apply(null,vals)||1;var gap=18,bw=Math.max(18,(w-gap*(vals.length+1))/vals.length);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--gold").trim()||"#D4AF37";vals.forEach(function(v,i){var bh=(h-38)*v/max,x=gap+i*(bw+gap);ctx.fillRect(x,h-26-bh,bw,bh);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--text-dim").trim()||"#86EFAC";ctx.font="12px sans-serif";ctx.fillText(String(pos[i].symbol||pos[i].name||"Asset").slice(0,12),x,h-8);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--gold").trim()||"#D4AF37";});}
+var walletDefs=[["metamask","MetaMask","EVM"],["trustwallet","Trust Wallet","Multi-chain"],["coinbase","Coinbase Wallet","EVM"],["phantom","Phantom","Solana"],["rainbow","Rainbow","EVM"],["ledger","Ledger Live","Hardware"],["trezor","Trezor","Hardware"],["exodus","Exodus","Multi-chain"]];
+function renderWallets(){var linked=state.wallets||[];$("#page-wallet").innerHTML=pageHeading("Link wallet","Manage wallet connection requests")+'<div class="section-card"><div class="sc-head"><h3>Connected wallets</h3><span class="muted">'+linked.length+' linked</span></div>'+table(["Wallet","Network","Public address","Status"],linked.map(function(w){return '<tr><td>'+esc(w.wallet_name||w.wallet_id||"Wallet")+'</td><td>'+esc(w.chain||"—")+'</td><td class="mono">'+esc(w.address||"—")+'</td><td>'+esc(w.status||"—")+'</td></tr>';}),"No wallets have been linked.")+'</div><div class="sc-head"><h3>Wallet providers</h3><button class="btn btn-solid" id="open-wallet-modal">Add wallet</button></div><div class="wallet-grid">'+walletDefs.map(function(w){return '<div class="wallet-card"><h3>'+esc(w[1])+'</h3><div class="wallet-meta">'+esc(w[2])+'</div><p>Submit your public wallet address for account review. Never submit a seed phrase or private key.</p><button class="btn" data-wallet="'+esc(w[0])+'">Link wallet</button></div>';}).join("")+'</div>';}
+function renderCopy(){var arr=state.traders||[];$("#page-copy").innerHTML=pageHeading("Copy trading","Browse trader profiles and choose whether to follow their strategy")+'<div class="tabs"><button class="tab active" data-copy-tab="discover">Discover traders</button><button class="tab" data-copy-tab="mine">My copies</button></div><div id="copy-list"></div>';showCopyList("discover");}
+function showCopyList(tab){$$("[data-copy-tab]").forEach(function(b){b.classList.toggle("active",b.dataset.copyTab===tab);});var arr=tab==="mine"?state.copies:state.traders;$("#copy-list").innerHTML=arr&&arr.length?'<div class="tc-grid">'+arr.map(function(t){var id=t.trader_id||t.id;return '<div class="tc-card"><h3>'+esc(t.display_name||t.trader_name||"Trader")+'</h3><p>'+esc(t.bio||t.description||"Trader profile")+'</p><div class="kpi-strip" style="grid-template-columns:1fr 1fr"><div><div class="kpi-label">ROI</div><div class="kpi-value">'+(t.roi!=null?esc(t.roi)+"%":"—")+'</div></div><div><div class="kpi-label">Win rate</div><div class="kpi-value">'+(t.win_rate!=null?esc(t.win_rate)+"%":"—")+'</div></div></div><div class="wallet-meta">Minimum: '+(t.minimum_investment!=null?money(t.minimum_investment):"—")+'</div>'+(tab==="mine"?'<button class="btn" data-stop-copy="'+esc(id)+'">Stop copying</button>':'<button class="btn btn-solid" data-copy-trader="'+esc(id)+'">Copy this trader</button>')+'</div>';}).join("")+'</div>':'<div class="empty-state">'+(tab==="mine"?"You are not copying any traders yet.":"No trader profiles are currently available.")+'</div>';}
+function renderPlans(){var plans=[["Starter","$500","Minimum funded balance","Crypto deposits accepted · Email support · Standard execution · Web dashboard"],["Growth","$1,000","Minimum funded balance","Priority email support · Faster execution · Standard web dashboard"],["Professional","$2,500","Minimum funded balance","Priority support · Quarterly statement package · Standard execution"],["Premier","$5,000","Minimum funded balance","Dedicated account manager · Extended-hours support · Quarterly statements"],["Private","$10,000","Minimum funded balance","Direct support line · Custom reporting · Annual account review"],["Institutional","$25,000","Minimum funded balance","Bespoke onboarding · Dedicated integration support · Custom reporting"]];$("#page-plans-page").innerHTML=pageHeading("Account plans","Account tiers and minimum funded balances")+'<div class="plans-grid">'+plans.map(function(p){return '<div class="plan-card"><h3>'+p[0]+'</h3><div class="ohc-amount" style="font-size:25px">'+p[1]+'</div><div class="wallet-meta">'+p[2]+'</div><p>'+p[3]+'</p><a class="btn btn-solid" href="/signup.html">Continue to signup</a></div>';}).join("")+'</div><p class="muted" style="font-size:11px;margin-top:12px">Tier details are reproduced from the public Fargo Capitol plans page. Plan upgrades are not submitted here because no dashboard subscription endpoint is configured in the current API client.</p>';}
+function renderServices(){$("#page-services").innerHTML=pageHeading("Services","Fargo Capitol services")+'<div class="coming-page"><h2>Services catalogue unavailable</h2><p>The repository currently has no published services catalogue or activation endpoint. This page is intentionally not populated with invented offers.</p></div>';}
+function renderHistory(){$("#page-history").innerHTML=pageHeading("Account statement","Your account activity")+'<div class="section-card">'+table(["Date","Type","Amount","Status","Reference"],state.transactions.map(function(t){return '<tr><td>'+esc(t.created_at||t.requested_at||"—")+'</td><td>'+esc(t.type||t.kind||"—")+'</td><td class="mono">'+(t.amount_usd!=null?money(t.amount_usd):"—")+'</td><td>'+esc(t.status||"—")+'</td><td class="mono">'+esc(t.reference||t.id||"—")+'</td></tr>';}),"No transaction records returned by the account API.")+'</div>';}
+function renderFund(){$("#page-fund").innerHTML=pageHeading("Fund account","Create a funding request")+'<div class="form-card"><form id="fund-form"><div class="field"><label for="fund-amount">Amount (USD)</label><input id="fund-amount" type="number" min="1" step=".01" required placeholder="0.00"></div><div class="field"><label for="fund-method">Method</label><select id="fund-method"><option value="crypto">Crypto transfer</option><option value="bank">Bank transfer</option></select></div><div class="field"><label for="fund-note">Note (optional)</label><input id="fund-note" maxlength="160" placeholder="Payment reference"></div><p id="fund-error" class="negative"></p><button class="btn btn-solid" type="submit">Submit funding request</button></form></div>';}
+function renderWithdraw(){$("#page-withdraw").innerHTML=pageHeading("Withdraw funds","Review your available balance before submitting a request")+'<div class="form-card"><p class="muted">Available balance: <strong>'+balanceDisplay()+'</strong></p><div class="empty-state">Withdrawal submission is not enabled in this dashboard because the current API client does not expose a verified user withdrawal route. Contact support for withdrawal instructions.</div></div>';}
+function renderSettings(){$("#page-settings").innerHTML=pageHeading("Account settings","Your account details")+'<div class="form-card"><div class="field"><label>Full name</label><input readonly value="'+esc(fullName(state.user))+'"></div><div class="field"><label>Email</label><input readonly value="'+esc(state.user.email||"")+'"></div><div class="field"><label>Username</label><input readonly value="'+esc(state.user.username||"—")+'"></div><div class="field"><label>Account role</label><input readonly value="'+esc(state.user.role||"user")+'"></div><p class="muted">For security, profile changes are managed through the account support process.</p></div>';}
+function placeholder(id,title){$("#page-"+id).innerHTML=pageHeading(title,"")+'<div class="coming-page"><h2>'+esc(title)+' is not available yet</h2><p>This section is reserved for a future Fargo Capitol feature. No demo data or unsupported actions are shown.</p></div>';}
+function renderCrypto(){var symbols=["BITSTAMP:BTCUSD","BITSTAMP:ETHUSD","BINANCE:SOLUSDT"];$("#page-crypto").innerHTML=pageHeading("Crypto markets","Live chart provided by TradingView")+'<div class="section-card"><div class="field"><label for="crypto-symbol">Market</label><select id="crypto-symbol">'+symbols.map(function(s){return '<option value="'+s+'">'+s.split(":")[1]+'</option>';}).join("")+'</select></div><div id="tv-market-box" style="height:480px;border-radius:10px;overflow:hidden"></div></div>';mountTradingView(symbols[0]);}
+function mountTradingView(symbol){var box=$("#tv-market-box");if(!box)return;box.innerHTML="";var wrap=document.createElement("div");wrap.className="tradingview-widget-container";wrap.style.height="100%";var widget=document.createElement("div");widget.className="tradingview-widget-container__widget";widget.style.height="100%";wrap.appendChild(widget);var script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";script.async=true;script.text=JSON.stringify({autosize:true,symbol:symbol,interval:"D",timezone:"Etc/UTC",theme:document.documentElement.dataset.theme==="light"?"light":"dark",style:"1",locale:"en",allow_symbol_change:true,calendar:false,support_host:"https://www.tradingview.com"});wrap.appendChild(script);box.appendChild(wrap);}
+async function loadNotifications(){try{var rows=await req("/notifications");state.notifications=Array.isArray(rows)?rows:[];var unread=state.notifications.some(function(n){return !n.read;});$("#notif-dot").hidden=!unread;$("#notif-list").innerHTML=state.notifications.length?state.notifications.map(function(n){return '<div class="notif-item"><strong>'+esc(n.title||"Notification")+'</strong><p>'+esc(n.body||"")+'</p><span class="muted">'+esc(n.created_at||"")+'</span></div>';}).join(""):'<div class="empty-state">No notifications.</div>';}catch(e){$("#notif-list").textContent="Notifications are unavailable.";}}
+async function loadAll(){try{var results=await Promise.allSettled([req("/auth/me"),req("/portfolio"),req("/wallets"),req("/portfolio/copy-traders"),req("/portfolio/my-copies"),req("/kyc"),req("/plans"),req("/transactions")]);if(results[0].status==="fulfilled"){state.user=Object.assign({},state.user,results[0].value);if(Api.setUser)Api.setUser(state.user);}if(results[1].status==="fulfilled")state.portfolio=results[1].value;if(results[2].status==="fulfilled")state.wallets=Array.isArray(results[2].value)?results[2].value:[];if(results[3].status==="fulfilled")state.traders=Array.isArray(results[3].value)?results[3].value:[];if(results[4].status==="fulfilled")state.copies=Array.isArray(results[4].value)?results[4].value:[];if(results[5].status==="fulfilled")state.kyc=results[5].value;if(results[6].status==="fulfilled"){var p=results[6].value;state.plans=Array.isArray(p)?p:(p&&p.plans)||[];}if(results[7].status==="fulfilled")state.transactions=Array.isArray(results[7].value)?results[7].value:[];}catch(e){console.error("Dashboard load:",e);}syncUser();syncBalances();loadOverview();loadPortfolio();renderWallets();renderCopy();renderPlans();renderServices();renderHistory();renderFund();renderWithdraw();renderSettings();renderCrypto();["stock-mkt","loans","loan-history","signals","refer","affiliate","staking","trading","returns"].forEach(function(id){placeholder(id,meta[id][1]);});await loadNotifications();}
+document.addEventListener("click",function(e){navigateFromEvent(e);var toggle=e.target.closest("[data-toggle]");if(toggle){var key=toggle.dataset.toggle;state.expanded[key]=!state.expanded[key];toggle.classList.toggle("expanded",state.expanded[key]);var sub=$('[data-sub="'+key+'"]');if(sub)sub.classList.toggle("open",state.expanded[key]);}var close=e.target.closest("[data-close]");if(close)$("#"+close.dataset.close).classList.remove("open");var wt=e.target.closest("[data-wallet]");if(wt){$("#wallet-provider").value=wt.dataset.wallet;$("#wallet-modal-backdrop").classList.add("open");}var copy=e.target.closest("[data-copy-trader]");if(copy)openCopy(copy.dataset.copyTrader);var stop=e.target.closest("[data-stop-copy]");if(stop)stopCopy(stop.dataset.stopCopy);var tab=e.target.closest("[data-copy-tab]");if(tab)showCopyList(tab.dataset.copyTab);if(e.target.id==="open-wallet-modal")$("#wallet-modal-backdrop").classList.add("open");});
+$("#tb-burger").addEventListener("click",function(){$("#dash-sidebar").classList.add("open");$("#sb-backdrop").classList.add("show");});$("#sb-backdrop").addEventListener("click",closeSidebar);
+$("#notif-button").addEventListener("click",function(){$("#notif-panel").classList.toggle("open");$("#profile-panel").classList.remove("open");});$("#profile-button").addEventListener("click",function(){$("#profile-panel").classList.toggle("open");$("#notif-panel").classList.remove("open");});document.addEventListener("click",function(e){if(!e.target.closest("#notif-panel,#notif-button"))$("#notif-panel").classList.remove("open");if(!e.target.closest("#profile-panel,#profile-button"))$("#profile-panel").classList.remove("open");});
+async function logout(){try{if(Api.clearToken)Api.clearToken();}finally{location.href="/login.html";}}$("#logout-link").addEventListener("click",function(e){e.preventDefault();logout();});$("#profile-logout").addEventListener("click",logout);
+$("#refer-copy").addEventListener("click",function(){var v=$("#refer-input").value;if(!v){toast("Referral link is not available yet.");return;}if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(function(){toast("Referral link copied.");}).catch(function(){toast("Could not copy referral link.");});else toast(v);});
+$("#theme-toggle-btn").addEventListener("click",function(){var next=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=next;try{localStorage.setItem("fcl_theme",next);}catch(e){}});
+$("#wallet-link-form").addEventListener("submit",async function(e){e.preventDefault();var err=$("#wallet-link-error");err.textContent="";var payload={wallet_id:$("#wallet-provider").value,chain:$("#wallet-chain").value.trim(),address:$("#wallet-address").value.trim()};if(!payload.address||!payload.chain)return;try{await req("/wallets",{method:"POST",body:JSON.stringify(payload)});$("#wallet-modal-backdrop").classList.remove("open");e.target.reset();var rows=await req("/wallets");state.wallets=Array.isArray(rows)?rows:[];renderWallets();toast("Wallet submitted for review.");}catch(ex){err.textContent=ex.message||"Wallet could not be submitted."; }});
+$("#cm-confirm").addEventListener("click",async function(){var traderId=$("#cm-confirm").dataset.trader,amount=Number($("#cm-amount").value),trader=state.traders.find(function(t){return String(t.id)===String(traderId);});var err=$("#cm-error");err.textContent="";if(!trader||!Number.isFinite(amount)||amount<=0){err.textContent="Enter a valid amount.";return;}if(amount<Number(trader.minimum_investment||0)){err.textContent="Amount is below the trader minimum.";return;}if(zeroPlan()||amount>rawBalance()){err.textContent="Insufficient available balance. Please review your plan and account balance.";return;}var btn=$("#cm-confirm");btn.disabled=true;try{await req("/portfolio/copy-traders/"+encodeURIComponent(traderId),{method:"POST",body:JSON.stringify({amount:amount,source:"balance"})});$("#copy-modal-backdrop").classList.remove("open");state.copies=await req("/portfolio/my-copies");state.copies=Array.isArray(state.copies)?state.copies:[];toast("Copy trading request submitted.");renderCopy();}catch(ex){err.textContent=ex.message||"Could not start copy trading.";}finally{btn.disabled=false;}});
+function openCopy(id){var t=state.traders.find(function(x){return String(x.id)===String(id);});if(!t)return;$("#cm-trader").textContent=(t.display_name||"Trader")+" · Minimum "+(t.minimum_investment!=null?money(t.minimum_investment):"—");$("#cm-amount").value=t.minimum_investment||"";$("#cm-bal-sub").textContent="Available: "+balanceDisplay();$("#cm-error").textContent="";$("#cm-confirm").dataset.trader=id;$("#cm-confirm").disabled=zeroPlan()||rawBalance()<=0;$("#copy-modal-backdrop").classList.add("open");}
+async function stopCopy(id){try{await req("/portfolio/copy-traders/"+encodeURIComponent(id),{method:"DELETE"});state.copies=await req("/portfolio/my-copies");state.copies=Array.isArray(state.copies)?state.copies:[];renderCopy();toast("Copy request stopped.");}catch(e){toast(e.message||"Unable to stop copy request.");}}
+$("#fund-form").addEventListener("submit",async function(e){e.preventDefault();var err=$("#fund-error");err.textContent="";var amount=Number($("#fund-amount").value);if(!Number.isFinite(amount)||amount<=0){err.textContent="Enter a valid amount.";return;}try{await req("/topups",{method:"POST",body:JSON.stringify({amount_usd:amount,method:$("#fund-method").value,note:$("#fund-note").value.trim()})});toast("Funding request submitted for review.");e.target.reset();}catch(ex){err.textContent=ex.message||"Could not submit funding request."; }});
+$("#notif-mark-all").addEventListener("click",async function(){try{await req("/notifications/read-all",{method:"POST"});state.notifications.forEach(function(n){n.read=true;});$("#notif-dot").hidden=true;$("#notif-list").innerHTML='<div class="empty-state">All caught up.</div>';}catch(e){toast("Could not update notifications.");}});
+$("#page-crypto").addEventListener("change",function(e){if(e.target.id==="crypto-symbol")mountTradingView(e.target.value);});
+document.addEventListener("DOMContentLoaded",function(){});
+var originalSetPage=setPage;document.addEventListener("click",function(e){var p=e.target.closest("[data-page]");if(p&&p.dataset.page){originalSetPage(p.dataset.page);}});
+loadAll();
+})();
 </script>
 </body>
 </html>
