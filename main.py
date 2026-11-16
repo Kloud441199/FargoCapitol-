@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, Float, func, or_
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
 from jose import jwt
@@ -35,6 +35,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
+    username = Column(String, index=True)
     full_name = Column(String)
     hashed_password = Column(String)
     role = Column(String, default="user")
@@ -67,6 +68,7 @@ app.add_middleware(
 # --- 5. SCHEMAS ---
 class UserSignup(BaseModel):
     email: str
+    username: str
     password: str
     full_name: str
 
@@ -88,15 +90,25 @@ def signup(user: UserSignup, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Password must be 72 bytes or fewer")
 
     email = user.email.strip().lower()
-    db_user = db.query(User).filter(User.email == email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    username = user.username.strip().lower()
+
+    if not username or not username.replace("_", "").replace("-", "").isalnum():
+        raise HTTPException(status_code=400, detail="Username may contain only letters, numbers, underscores, and hyphens")
+
+    existing = db.query(User).filter(
+        or_(func.lower(User.email) == email, func.lower(User.username) == username)
+    ).first()
+    if existing:
+        if existing.email.lower() == email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Username already taken")
 
     new_user = User(
         email=email,
+        username=username,
         full_name=user.full_name.strip(),
         hashed_password=get_password_hash(user.password),
-        role="admin" if "admin" in email else "user"
+        role="user"
     )
     db.add(new_user)
     db.commit()
@@ -112,6 +124,7 @@ def signup(user: UserSignup, db: Session = Depends(get_db)):
         "user": {
             "id": new_user.id,
             "email": new_user.email,
+            "username": new_user.username,
             "full_name": new_user.full_name,
             "role": new_user.role,
             "cash_balance": new_user.balance
@@ -120,10 +133,15 @@ def signup(user: UserSignup, db: Session = Depends(get_db)):
 
 @app.post("/api/auth/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    email = user.identifier.strip().lower()
-    db_user = db.query(User).filter(User.email == email).first()
+    identifier = user.identifier.strip().lower()
+    db_user = db.query(User).filter(
+        or_(
+            func.lower(User.email) == identifier,
+            func.lower(User.username) == identifier
+        )
+    ).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Invalid email/username or password")
 
     token = jwt.encode({"sub": db_user.email, "role": db_user.role}, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -132,6 +150,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "user": {
             "id": db_user.id,
             "email": db_user.email,
+            "username": db_user.username,
             "full_name": db_user.full_name,
             "role": db_user.role,
             "cash_balance": db_user.balance
