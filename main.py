@@ -1,12 +1,17 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Float, func, or_
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, func, or_
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
 from jose import jwt
+from datetime import datetime, timezone
+from urllib.request import Request as URLRequest, urlopen
+import ipaddress
+import json
 import os
 
 # --- 1. SETUP DATABASE ---
@@ -40,6 +45,13 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(String, default="user")
     balance = Column(Float, default=0.0)
+    last_login_ip = Column(INET)
+    last_login_city = Column(String)
+    last_login_region = Column(String)
+    last_login_country = Column(String)
+    last_login_ip_latitude = Column(Float)
+    last_login_ip_longitude = Column(Float)
+    last_login_at = Column(DateTime(timezone=True))
 
 Base.metadata.create_all(bind=engine)
 
@@ -131,8 +143,42 @@ def signup(user: UserSignup, db: Session = Depends(get_db)):
         }
     }
 
+def get_login_ip(request: Request):
+    # Uvicorn proxy-header handling supplies the client address behind Render.
+    candidate = request.client.host if request.client else None
+    try:
+        parsed = ipaddress.ip_address(candidate) if candidate else None
+        if not parsed or parsed.is_private or parsed.is_loopback or parsed.is_reserved:
+            return None
+        return parsed
+    except ValueError:
+        return None
+
+def lookup_ip_location(ip):
+    if not ip:
+        return {}
+    try:
+        req = URLRequest(
+            "https://ipapi.co/" + str(ip) + "/json/",
+            headers={"User-Agent": "FargoCapitol/1.0"}
+        )
+        with urlopen(req, timeout=2.5) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        if data.get("error"):
+            return {}
+        return {
+            "city": data.get("city"),
+            "region": data.get("region"),
+            "country": data.get("country_name"),
+            "latitude": data.get("latitude"),
+            "longitude": data.get("longitude"),
+        }
+    except Exception:
+        # Geolocation outages must never block a valid login.
+        return {}
+
 @app.post("/api/auth/login")
-def login(user: UserLogin, db: Session = Depends(get_db)):
+def login(user: UserLogin, request: Request, db: Session = Depends(get_db)):
     identifier = user.identifier.strip().lower()
     db_user = db.query(User).filter(
         or_(
@@ -142,6 +188,18 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     ).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email/username or password")
+
+    login_ip = get_login_ip(request)
+    location = lookup_ip_location(login_ip)
+    db_user.last_login_ip = str(login_ip) if login_ip else None
+    db_user.last_login_city = location.get("city")
+    db_user.last_login_region = location.get("region")
+    db_user.last_login_country = location.get("country")
+    db_user.last_login_ip_latitude = location.get("latitude")
+    db_user.last_login_ip_longitude = location.get("longitude")
+    db_user.last_login_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(db_user)
 
     token = jwt.encode({"sub": db_user.email, "role": db_user.role}, SECRET_KEY, algorithm=ALGORITHM)
 
