@@ -291,6 +291,47 @@ def read_faq():
 def read_logo():
     return FileResponse("wsc-logo.png")
 
+
+# Additional public frontend pages
+@app.get("/forgot.html")
+@app.head("/forgot.html")
+def read_forgot():
+    return FileResponse("forgot.html")
+
+@app.get("/contact.html")
+@app.head("/contact.html")
+def read_contact():
+    return FileResponse("contact.html")
+
+@app.get("/kyc.html")
+@app.head("/kyc.html")
+def read_kyc():
+    return FileResponse("kyc.html")
+
+@app.get("/status.html")
+@app.head("/status.html")
+def read_status():
+    return FileResponse("status.html")
+
+@app.get("/disclosures.html")
+@app.head("/disclosures.html")
+def read_disclosures():
+    return FileResponse("disclosures.html")
+
+@app.get("/privacy.html")
+@app.head("/privacy.html")
+def read_privacy():
+    return FileResponse("privacy.html")
+
+@app.get("/terms.html")
+@app.head("/terms.html")
+def read_terms():
+    return FileResponse("terms.html")
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "FargoCapitol"}
+
 # 3. Mount the CSS and JS folders
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/js", StaticFiles(directory="js"), name="js")
