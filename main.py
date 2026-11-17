@@ -216,6 +216,40 @@ def login(user: UserLogin, request: Request, db: Session = Depends(get_db)):
     }
 
 
+# --- 6A. AUTHENTICATED ACCOUNT API ---
+@app.get("/api/auth/me")
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    """Return the signed-in user's own account profile from the verified JWT."""
+    authorization = request.headers.get("authorization", "")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        subject = payload.get("sub")
+        if not subject:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired authentication token")
+
+    user = db.query(User).filter(func.lower(User.email) == subject.lower()).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Account not found")
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "full_name": user.full_name,
+        "role": user.role or "user",
+        "cash_balance": float(user.balance or 0),
+        "balance": float(user.balance or 0),
+    }
+
+
 # --- 6A. ADMIN API ---
 @app.get("/api/admin/users")
 def list_admin_users(request: Request, db: Session = Depends(get_db)):
