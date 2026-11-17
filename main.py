@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, func, or_
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Numeric, ForeignKey, func, or_
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
@@ -53,6 +53,28 @@ class User(Base):
     last_login_ip_longitude = Column(Float)
     last_login_at = Column(DateTime(timezone=True))
 
+
+class WalletLink(Base):
+    __tablename__ = "wallet_links"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    wallet_id = Column(String(40), nullable=False)
+    chain = Column(String(80), nullable=False)
+    address = Column(String(160), nullable=False)
+    status = Column(String(32), nullable=False, default="pending_review")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class FundingRequest(Base):
+    __tablename__ = "funding_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    amount_usd = Column(Numeric(14, 2), nullable=False)
+    method = Column(String(32), nullable=False)
+    note = Column(String(160))
+    status = Column(String(32), nullable=False, default="pending_review")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
 Base.metadata.create_all(bind=engine)
 
 # --- 3. SECURITY SETUP ---
@@ -87,6 +109,18 @@ class UserSignup(BaseModel):
 class UserLogin(BaseModel):
     identifier: str
     password: str
+
+
+class WalletLinkInput(BaseModel):
+    wallet_id: str
+    chain: str
+    address: str
+
+
+class FundingRequestInput(BaseModel):
+    amount_usd: float
+    method: str = "crypto"
+    note: str = ""
 
 def get_db():
     db = SessionLocal()
@@ -248,6 +282,112 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
         "cash_balance": float(user.balance or 0),
         "balance": float(user.balance or 0),
     }
+
+
+# --- 6B. DASHBOARD ACCOUNT DATA ---
+@app.get("/api/portfolio")
+def get_portfolio(user: dict = Depends(get_current_user)):
+    balance = float(user.get("balance") or 0)
+    return {
+        "account": {
+            "available_balance": balance,
+            "cash_balance": balance,
+            "balance": balance,
+        },
+        "positions": [],
+        "unrealized_pl": None,
+    }
+
+
+@app.get("/api/wallets")
+def list_wallet_links(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.query(WalletLink).filter(
+        WalletLink.user_id == user["id"]
+    ).order_by(WalletLink.created_at.desc()).all()
+    return [{
+        "id": row.id,
+        "wallet_id": row.wallet_id,
+        "wallet_name": row.wallet_id,
+        "chain": row.chain,
+        "address": row.address,
+        "status": row.status,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    } for row in rows]
+
+
+@app.post("/api/wallets", status_code=201)
+def create_wallet_link(payload: WalletLinkInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    wallet_id = payload.wallet_id.strip().lower()
+    chain = payload.chain.strip()
+    address = payload.address.strip()
+    if not wallet_id or len(wallet_id) > 40:
+        raise HTTPException(status_code=400, detail="Select a valid wallet provider")
+    if not chain or len(chain) > 80:
+        raise HTTPException(status_code=400, detail="Enter a valid network")
+    if not address or len(address) > 160:
+        raise HTTPException(status_code=400, detail="Enter a valid public wallet address")
+    # Reject common recovery-phrase submissions; the app must never collect them.
+    words = address.split()
+    if len(words) in (12, 15, 18, 21, 24):
+        raise HTTPException(status_code=400, detail="Recovery phrases and private keys must never be submitted")
+    row = WalletLink(user_id=user["id"], wallet_id=wallet_id, chain=chain,
+                     address=address, status="pending_review")
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"id": row.id, "wallet_id": row.wallet_id, "chain": row.chain,
+            "address": row.address, "status": row.status,
+            "created_at": row.created_at.isoformat() if row.created_at else None}
+
+
+@app.delete("/api/wallets/{wallet_id}")
+def delete_wallet_link(wallet_id: int, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    row = db.query(WalletLink).filter(
+        WalletLink.id == wallet_id, WalletLink.user_id == user["id"]
+    ).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    db.delete(row)
+    db.commit()
+    return {"success": True}
+
+
+@app.post("/api/topups", status_code=201)
+def create_funding_request(payload: FundingRequestInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    if payload.amount_usd <= 0 or payload.amount_usd > 100000000:
+        raise HTTPException(status_code=400, detail="Enter a valid funding amount")
+    method = payload.method.strip().lower()
+    if method not in ("crypto", "bank"):
+        raise HTTPException(status_code=400, detail="Select a supported funding method")
+    note = (payload.note or "").strip()
+    if len(note) > 160:
+        raise HTTPException(status_code=400, detail="Funding note is too long")
+    row = FundingRequest(user_id=user["id"], amount_usd=payload.amount_usd,
+                         method=method, note=note or None, status="pending_review")
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"id": row.id, "amount_usd": float(row.amount_usd), "method": row.method,
+            "note": row.note, "status": row.status,
+            "created_at": row.created_at.isoformat() if row.created_at else None}
+
+
+@app.get("/api/transactions")
+def list_transactions(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.query(FundingRequest).filter(
+        FundingRequest.user_id == user["id"]
+    ).order_by(FundingRequest.created_at.desc()).all()
+    return [{
+        "id": row.id,
+        "type": "funding_request",
+        "kind": "funding_request",
+        "amount_usd": float(row.amount_usd),
+        "method": row.method,
+        "note": row.note,
+        "status": row.status,
+        "reference": "FUND-" + str(row.id),
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    } for row in rows]
 
 
 # --- 6A. ADMIN API ---
