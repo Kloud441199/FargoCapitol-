@@ -460,6 +460,7 @@ def list_my_loan_applications(user: dict = Depends(get_current_user), db: Sessio
     return [loan_to_dict(row) for row in rows]
 
 
+@app.post("/api/loans/apply", status_code=201)
 @app.post("/api/loans", status_code=201)
 def submit_loan_application(payload: LoanApplicationInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     if payload.identity_last4 and (len(payload.identity_last4) != 4 or not payload.identity_last4.isdigit()):
