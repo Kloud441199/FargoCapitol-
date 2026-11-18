@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Numeric, ForeignKey, func, or_
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -75,6 +75,36 @@ class FundingRequest(Base):
     status = Column(String(32), nullable=False, default="pending_review")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+class LoanApplication(Base):
+    __tablename__ = "loan_applications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    full_name = Column(String(160), nullable=False)
+    date_of_birth = Column(String(10))
+    phone = Column(String(40), nullable=False)
+    identity_type = Column(String(32), nullable=False)
+    identity_last4 = Column(String(4))
+    street_address = Column(String(240), nullable=False)
+    city = Column(String(100), nullable=False)
+    state_region = Column(String(100), nullable=False)
+    postal_code = Column(String(24), nullable=False)
+    country = Column(String(100), nullable=False)
+    employment_status = Column(String(40), nullable=False)
+    employer_name = Column(String(160))
+    monthly_income = Column(Numeric(14, 2), nullable=False)
+    existing_debt = Column(Numeric(14, 2), nullable=False, default=0)
+    nok_name = Column(String(160), nullable=False)
+    nok_phone = Column(String(40), nullable=False)
+    nok_relationship = Column(String(80), nullable=False)
+    amount_usd = Column(Numeric(14, 2), nullable=False)
+    term_months = Column(Integer, nullable=False)
+    purpose = Column(String(240), nullable=False)
+    notes = Column(String(2000))
+    status = Column(String(32), nullable=False, default="pending_review")
+    review_reason = Column(String(1000))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
 Base.metadata.create_all(bind=engine)
 
 # --- 3. SECURITY SETUP ---
@@ -121,6 +151,35 @@ class FundingRequestInput(BaseModel):
     amount_usd: float
     method: str = "crypto"
     note: str = ""
+
+class LoanApplicationInput(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=160)
+    date_of_birth: str = Field("", max_length=10)
+    phone: str = Field(..., min_length=5, max_length=40)
+    identity_type: str = Field(..., min_length=2, max_length=32)
+    identity_last4: str = Field("", max_length=4)
+    street_address: str = Field(..., min_length=3, max_length=240)
+    city: str = Field(..., min_length=2, max_length=100)
+    state_region: str = Field(..., min_length=2, max_length=100)
+    postal_code: str = Field(..., min_length=2, max_length=24)
+    country: str = Field(..., min_length=2, max_length=100)
+    employment_status: str = Field(..., min_length=2, max_length=40)
+    employer_name: str = Field("", max_length=160)
+    monthly_income: float = Field(..., ge=0, le=100000000)
+    existing_debt: float = Field(0, ge=0, le=100000000)
+    nok_name: str = Field(..., min_length=2, max_length=160)
+    nok_phone: str = Field(..., min_length=5, max_length=40)
+    nok_relationship: str = Field(..., min_length=2, max_length=80)
+    amount_usd: float = Field(..., gt=0, le=100000000)
+    term_months: int = Field(..., ge=1, le=360)
+    purpose: str = Field(..., min_length=3, max_length=240)
+    notes: str = Field("", max_length=2000)
+
+
+class LoanReviewInput(BaseModel):
+    status: str
+    review_reason: str = Field("", max_length=1000)
+
 
 def get_db():
     db = SessionLocal()
@@ -370,6 +429,89 @@ def create_funding_request(payload: FundingRequestInput, user: dict = Depends(ge
     return {"id": row.id, "amount_usd": float(row.amount_usd), "method": row.method,
             "note": row.note, "status": row.status,
             "created_at": row.created_at.isoformat() if row.created_at else None}
+
+
+def loan_to_dict(row):
+    return {
+        "id": row.id, "user_id": row.user_id, "full_name": row.full_name,
+        "date_of_birth": row.date_of_birth, "phone": row.phone,
+        "identity_type": row.identity_type,
+        "identity_last4": row.identity_last4,
+        "street_address": row.street_address, "city": row.city,
+        "state_region": row.state_region, "postal_code": row.postal_code,
+        "country": row.country, "employment_status": row.employment_status,
+        "employer_name": row.employer_name,
+        "monthly_income": float(row.monthly_income or 0),
+        "existing_debt": float(row.existing_debt or 0),
+        "nok_name": row.nok_name, "nok_phone": row.nok_phone,
+        "nok_relationship": row.nok_relationship,
+        "amount_usd": float(row.amount_usd or 0), "term_months": row.term_months,
+        "purpose": row.purpose, "notes": row.notes, "status": row.status,
+        "review_reason": row.review_reason,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    }
+
+
+@app.get("/api/loans")
+def list_my_loan_applications(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.query(LoanApplication).filter(
+        LoanApplication.user_id == user["id"]
+    ).order_by(LoanApplication.created_at.desc()).all()
+    return [loan_to_dict(row) for row in rows]
+
+
+@app.post("/api/loans", status_code=201)
+def submit_loan_application(payload: LoanApplicationInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    if payload.identity_last4 and (len(payload.identity_last4) != 4 or not payload.identity_last4.isdigit()):
+        raise HTTPException(status_code=400, detail="Enter only the last four digits of your identity number.")
+    if payload.term_months not in (3, 6, 9, 12, 18, 24, 36, 48, 60):
+        raise HTTPException(status_code=400, detail="Select a supported loan term.")
+    if payload.employment_status.lower() not in ("employed", "self-employed", "unemployed", "student", "retired", "other"):
+        raise HTTPException(status_code=400, detail="Select a valid employment status.")
+    row = LoanApplication(
+        user_id=user["id"],
+        full_name=payload.full_name.strip(), date_of_birth=payload.date_of_birth.strip() or None,
+        phone=payload.phone.strip(), identity_type=payload.identity_type.strip(),
+        identity_last4=payload.identity_last4 or None,
+        street_address=payload.street_address.strip(), city=payload.city.strip(),
+        state_region=payload.state_region.strip(), postal_code=payload.postal_code.strip(),
+        country=payload.country.strip(), employment_status=payload.employment_status.strip().lower(),
+        employer_name=payload.employer_name.strip() or None,
+        monthly_income=payload.monthly_income, existing_debt=payload.existing_debt,
+        nok_name=payload.nok_name.strip(), nok_phone=payload.nok_phone.strip(),
+        nok_relationship=payload.nok_relationship.strip(), amount_usd=payload.amount_usd,
+        term_months=payload.term_months, purpose=payload.purpose.strip(),
+        notes=payload.notes.strip() or None, status="pending_review"
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return loan_to_dict(row)
+
+
+@app.get("/api/admin/loans")
+def list_all_loan_applications(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required")
+    rows = db.query(LoanApplication).order_by(LoanApplication.created_at.desc()).all()
+    return [loan_to_dict(row) for row in rows]
+
+
+@app.patch("/api/admin/loans/{loan_id}")
+def review_loan_application(loan_id: int, payload: LoanReviewInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required")
+    status = payload.status.strip().lower()
+    if status not in ("pending_review", "approved", "rejected"):
+        raise HTTPException(status_code=400, detail="Invalid loan review status.")
+    row = db.query(LoanApplication).filter(LoanApplication.id == loan_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Loan application not found")
+    row.status = status
+    row.review_reason = payload.review_reason.strip() or None
+    db.commit()
+    db.refresh(row)
+    return loan_to_dict(row)
 
 
 @app.get("/api/transactions")
