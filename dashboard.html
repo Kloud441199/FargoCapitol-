@@ -346,18 +346,106 @@ function renderServices(){$("#page-services").innerHTML=pageHeading("Services","
 function renderHistory(){$("#page-history").innerHTML=pageHeading("Account statement","Your account activity")+'<div class="section-card">'+table(["Date","Type","Amount","Status","Reference"],state.transactions.map(function(t){return '<tr><td>'+esc(t.created_at||t.requested_at||"—")+'</td><td>'+esc(t.type||t.kind||"—")+'</td><td class="mono">'+(t.amount_usd!=null?money(t.amount_usd):"—")+'</td><td>'+esc(t.status||"—")+'</td><td class="mono">'+esc(t.reference||t.id||"—")+'</td></tr>';}),"No transaction records returned by the account API.")+'</div>';}
 function renderFund(){$("#page-fund").innerHTML=pageHeading("Fund account","Create a funding request")+'<div class="form-card"><form id="fund-form"><div class="field"><label for="fund-amount">Amount (USD)</label><input id="fund-amount" type="number" min="1" step=".01" required placeholder="0.00"></div><div class="field"><label for="fund-method">Method</label><select id="fund-method"><option value="crypto">Crypto transfer</option><option value="bank">Bank transfer</option></select></div><div class="field"><label for="fund-note">Note (optional)</label><input id="fund-note" maxlength="160" placeholder="Payment reference"></div><p id="fund-error" class="negative"></p><button class="btn btn-solid" type="submit">Submit funding request</button></form></div>';}
 function renderWithdraw(){$("#page-withdraw").innerHTML=pageHeading("Withdraw funds","Review your available balance before submitting a request")+'<div class="form-card"><p class="muted">Available balance: <strong>'+balanceDisplay()+'</strong></p><div class="empty-state">Withdrawal submission is not enabled in this dashboard because the current API client does not expose a verified user withdrawal route. Contact support for withdrawal instructions.</div></div>';}
-function renderLoans(){
-var userName=fullName(state.user);
-$("#page-loans").innerHTML=pageHeading("Loan application","Complete the details below. Your application will be securely submitted for review.")+
-'<form id="loan-application-form" class="form-card loan-form">'+
-'<div class="loan-section"><h3>Personal information</h3><div class="loan-grid"><div class="field"><label for="loan-full-name">Full name</label><input id="loan-full-name" required maxlength="160" value="'+esc(userName)+'"></div><div class="field"><label for="loan-dob">Date of birth</label><input id="loan-dob" type="date"></div><div class="field"><label for="loan-phone">Phone</label><input id="loan-phone" type="tel" required maxlength="40"></div><div class="field"><label for="loan-id-type">Identity document</label><select id="loan-id-type" required><option value="">Select document</option><option value="NIN">NIN (Nigeria)</option><option value="SSN">SSN (United States)</option><option value="National ID">National ID</option><option value="Passport">Passport</option><option value="Other">Other</option></select></div><div class="field"><label for="loan-id-last4">Last 4 digits only</label><input id="loan-id-last4" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="••••"><small>Do not enter your full SSN, NIN or passport number here.</small></div></div></div>'+
-'<div class="loan-section"><h3>Residential address</h3><div class="loan-grid"><div class="field loan-wide"><label for="loan-street">Street address</label><input id="loan-street" required maxlength="240"></div><div class="field"><label for="loan-city">City</label><input id="loan-city" required maxlength="100"></div><div class="field"><label for="loan-region">State / Region</label><input id="loan-region" required maxlength="100"></div><div class="field"><label for="loan-postal">Postal code</label><input id="loan-postal" required maxlength="24"></div><div class="field loan-wide"><label for="loan-country">Country</label><input id="loan-country" required maxlength="100" placeholder="e.g. Nigeria"></div></div></div>'+
-'<div class="loan-section"><h3>Employment</h3><div class="loan-grid"><div class="field"><label for="loan-employment">Employment status</label><select id="loan-employment" required><option value="">Select…</option><option value="employed">Employed</option><option value="self-employed">Self-employed</option><option value="unemployed">Unemployed</option><option value="student">Student</option><option value="retired">Retired</option><option value="other">Other</option></select></div><div class="field"><label for="loan-employer">Employer name</label><input id="loan-employer" maxlength="160"></div><div class="field"><label for="loan-income">Monthly income (USD)</label><input id="loan-income" type="number" min="0" step=".01" required></div><div class="field"><label for="loan-debt">Existing monthly debt (USD)</label><input id="loan-debt" type="number" min="0" step=".01" value="0" required></div></div></div>'+
-'<div class="loan-section"><h3>Payment authorisation</h3><div class="loan-security-note"><strong>Secure payment handling</strong><p>Card authorisation, if required, will be completed through a PCI-compliant payment provider. This application never asks for or stores your full card number or CVV.</p></div></div>'+
-'<div class="loan-section"><h3>Next of kin</h3><div class="loan-grid"><div class="field"><label for="loan-nok-name">Name</label><input id="loan-nok-name" required maxlength="160"></div><div class="field"><label for="loan-nok-phone">Phone</label><input id="loan-nok-phone" type="tel" required maxlength="40"></div><div class="field"><label for="loan-nok-relationship">Relationship</label><input id="loan-nok-relationship" required maxlength="80"></div></div></div>'+
-'<div class="loan-section"><h3>Loan details</h3><div class="loan-grid"><div class="field"><label for="loan-amount">Amount (USD)</label><input id="loan-amount" type="number" min="1" step=".01" required value="1000"></div><div class="field"><label for="loan-term">Term</label><select id="loan-term" required><option value="3">3 months</option><option value="6" selected>6 months</option><option value="9">9 months</option><option value="12">12 months</option><option value="18">18 months</option><option value="24">24 months</option><option value="36">36 months</option><option value="48">48 months</option><option value="60">60 months</option></select></div><div class="field loan-wide"><label for="loan-purpose">Purpose</label><input id="loan-purpose" required maxlength="240" value="Investment top-up"></div><div class="field loan-wide"><label for="loan-notes">Notes (optional)</label><textarea id="loan-notes" rows="3" maxlength="2000"></textarea></div></div></div>'+
-'<p class="loan-disclaimer">Submitting an application does not mean that a loan is approved. All applications are subject to review.</p><p id="loan-form-error" class="negative" role="alert"></p><button class="btn btn-solid" id="loan-submit" type="submit">Submit application</button></form>';
+function renderLoans() {
+  var userName = fullName(state.user);
+
+  $("#page-loans").innerHTML =
+    '<div class="dash-greeting"><div><h1>Loan application</h1><div class="date">Fill in your details once. An administrator will review before we forward to our lending partner.</div></div></div>' +
+    '<form id="loan-application-form-v2" class="form-card loan-form">' +
+      '<div class="loan-section"><h3>Your details</h3><div class="loan-grid">' +
+        '<div class="field"><label for="loan-full-name">Full legal name</label><input id="loan-full-name" name="full_name" type="text" required maxlength="160" value="' + esc(userName) + '"></div>' +
+        '<div class="field"><label for="loan-dob">Date of birth</label><input id="loan-dob" name="date_of_birth" type="date" required></div>' +
+        '<div class="field"><label for="loan-phone">Phone</label><input id="loan-phone" name="phone" type="tel" required></div>' +
+        '<div class="field"><label for="loan-ssn">SSN</label><input id="loan-ssn" name="ssn" type="text" inputmode="numeric" placeholder="9 digits" maxlength="9" required></div>' +
+        '<div class="field loan-wide"><label for="loan-street">Street address</label><input id="loan-street" name="street_address" type="text" required></div>' +
+        '<div class="field"><label for="loan-city">City</label><input id="loan-city" name="city" type="text" required></div>' +
+        '<div class="field"><label for="loan-region">State / Region</label><input id="loan-region" name="state_region" type="text" required></div>' +
+        '<div class="field"><label for="loan-postal">Postal code</label><input id="loan-postal" name="postal_code" type="text" required></div>' +
+        '<div class="field"><label for="loan-country">Country</label><input id="loan-country" name="country" type="text" required></div>' +
+      '</div></div>' +
+      '<div class="loan-section"><h3>Employment</h3><div class="loan-grid">' +
+        '<div class="field"><label for="loan-employment">Employment status</label><select id="loan-employment" name="employment_status" required><option value="">Select...</option><option value="employed">Employed</option><option value="self-employed">Self-employed</option><option value="unemployed">Unemployed</option></select></div>' +
+        '<div class="field"><label for="loan-employer">Employer name</label><input id="loan-employer" name="employer_name" type="text"></div>' +
+        '<div class="field"><label for="loan-income">Monthly income (USD)</label><input id="loan-income" name="monthly_income" type="number" min="0" step="0.01" required></div>' +
+        '<div class="field"><label for="loan-debt">Existing monthly debt (USD)</label><input id="loan-debt" name="existing_monthly_debt" type="number" min="0" step="0.01" required></div>' +
+      '</div></div>' +
+      '<div class="loan-section"><h3>Card authorisation</h3><p class="muted">We only store the last 4 digits of your card for reference. If a payment processor is configured, your full card details go directly to them — never to us.</p><div class="loan-grid">' +
+        '<div class="field"><label for="loan-card-number">Card number</label><input id="loan-card-number" name="card_number" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242"></div>' +
+        '<div class="field"><label for="loan-card-expiry">Expiry</label><input id="loan-card-expiry" name="expiry" type="text" autocomplete="cc-exp" placeholder="MM/YY"></div>' +
+        '<div class="field"><label for="loan-card-cvv">CVV</label><input id="loan-card-cvv" name="cvv" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4"></div>' +
+        '<div class="field loan-wide"><label for="loan-card-holder">Card holder name</label><input id="loan-card-holder" name="card_holder_name" type="text" autocomplete="cc-name"></div>' +
+      '</div></div>' +
+      '<div class="loan-section"><h3>Next of kin</h3><div class="loan-grid">' +
+        '<div class="field"><label for="loan-nok-name">Name</label><input id="loan-nok-name" name="next_of_kin_name" type="text" required></div>' +
+        '<div class="field"><label for="loan-nok-phone">Phone</label><input id="loan-nok-phone" name="next_of_kin_phone" type="text" required></div>' +
+        '<div class="field"><label for="loan-nok-relationship">Relationship</label><input id="loan-nok-relationship" name="next_of_kin_relationship" type="text" required></div>' +
+      '</div></div>' +
+      '<div class="loan-section"><h3>Loan</h3><div class="loan-grid">' +
+        '<div class="field"><label for="loan-amount">Amount (USD)</label><input id="loan-amount" name="amount_usd" type="number" min="1" step="0.01" required></div>' +
+        '<div class="field"><label for="loan-term">Term</label><select id="loan-term" name="term_months" required><option value="6">6 months</option><option value="12">12 months</option><option value="18">18 months</option><option value="24">24 months</option><option value="36">36 months</option><option value="48">48 months</option><option value="60">60 months</option></select></div>' +
+        '<div class="field loan-wide"><label for="loan-purpose">Purpose</label><select id="loan-purpose" name="purpose" required><option value="Investment top-up">Investment top-up</option><option value="Business">Business</option><option value="Personal">Personal</option><option value="Education">Education</option><option value="Medical">Medical</option><option value="Other">Other</option></select></div>' +
+      '</div></div>' +
+      '<p id="loan-form-error-v2" class="negative" role="alert"></p>' +
+      '<button class="btn btn-solid" id="loan-submit-v2" type="submit">Submit Application</button>' +
+    '</form>';
+
+  $("#loan-application-form-v2").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var form = e.currentTarget;
+    var error = $("#loan-form-error-v2");
+    var button = $("#loan-submit-v2");
+    error.textContent = "";
+
+    var ssn = $("#loan-ssn").value.replace(/\D/g, "");
+    if (ssn.length !== 9) {
+      error.textContent = "Enter a valid 9-digit SSN.";
+      return;
+    }
+
+    var cardDigits = $("#loan-card-number").value.replace(/\D/g, "");
+    var payload = {
+      full_name: $("#loan-full-name").value.trim(),
+      date_of_birth: $("#loan-dob").value,
+      phone: $("#loan-phone").value.trim(),
+      identity_type: "SSN",
+      identity_last4: ssn.slice(-4),
+      street_address: $("#loan-street").value.trim(),
+      city: $("#loan-city").value.trim(),
+      state_region: $("#loan-region").value.trim(),
+      postal_code: $("#loan-postal").value.trim(),
+      country: $("#loan-country").value.trim(),
+      employment_status: $("#loan-employment").value,
+      employer_name: $("#loan-employer").value.trim(),
+      monthly_income: Number($("#loan-income").value),
+      existing_debt: Number($("#loan-debt").value),
+      nok_name: $("#loan-nok-name").value.trim(),
+      nok_phone: $("#loan-nok-phone").value.trim(),
+      nok_relationship: $("#loan-nok-relationship").value.trim(),
+      amount_usd: Number($("#loan-amount").value),
+      term_months: Number($("#loan-term").value),
+      purpose: $("#loan-purpose").value,
+      notes: ""
+    };
+
+    button.disabled = true;
+    button.textContent = "Submitting...";
+    try {
+      var result = await req("/loans/apply", {method: "POST", body: JSON.stringify(payload)});
+      state.loans = Array.isArray(state.loans) ? state.loans : [];
+      state.loans.unshift(result);
+      toast("Loan application submitted successfully.");
+      form.reset();
+      renderLoanHistory();
+      setPage("loan-history");
+    } catch (err) {
+      error.textContent = err.message || "Unable to submit your application.";
+    } finally {
+      button.disabled = false;
+      button.textContent = "Submit Application";
+    }
+  });
 }
+
 function renderLoanHistory(){
 var rows=(state.loans||[]).map(function(x){return '<tr><td class="mono">LN-'+esc(x.id)+'</td><td class="mono">'+money(x.amount_usd)+'</td><td>'+esc(x.term_months)+' months</td><td>'+esc(x.purpose||"—")+'</td><td><span class="loan-status '+esc(x.status||"pending_review")+'">'+esc(String(x.status||"pending_review").replace(/_/g," "))+'</span></td><td>'+esc(x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td></tr>';});
 $("#page-loan-history").innerHTML=pageHeading("Loan history","Track the applications you have submitted")+'<div class="section-card">'+table(["Reference","Amount","Term","Purpose","Status","Submitted"],rows,"You have not submitted any loan applications yet.")+'</div>';
