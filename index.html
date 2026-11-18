@@ -1094,6 +1094,76 @@ html[data-theme="light"] .wsc-preloader-status { color: #5A6E8C; }
 
     
 </style>
+
+<style id="fargo-home-dashboard-palette">
+/* Fargo Capitol homepage — matched to dashboard midnight / emerald / champagne palette */
+:root {
+  --bg:#080f1b; --bg-2:#0b1422; --panel:rgba(16,28,45,.94); --panel-solid:#101c2d;
+  --line:rgba(148,163,184,.15); --line-soft:rgba(148,163,184,.09);
+  --gold:#d8b56d; --gold-bright:#e8c982; --gold-deep:#98743a; --gold-glow:rgba(216,181,109,.18);
+  --tick-up:#31c48d; --tick-down:#f07178; --text:#edf3f8; --text-dim:#9aaabd; --text-dimmer:#708197;
+  --accent:#20a879; --accent-light:#53d6a6; --accent-soft:rgba(32,168,121,.12);
+}
+html[data-theme="light"] {
+  --bg:#f2f5f8; --bg-2:#e8edf2; --panel:rgba(255,255,255,.92); --panel-solid:#fff;
+  --line:rgba(51,65,85,.14); --line-soft:rgba(51,65,85,.08);
+  --gold:#98743a; --gold-bright:#a98242; --gold-deep:#76572b; --gold-glow:rgba(152,116,58,.16);
+  --tick-up:#087f5b; --tick-down:#c2414b; --text:#172536; --text-dim:#526477; --text-dimmer:#718197;
+  --accent:#087f5b; --accent-light:#14966e; --accent-soft:rgba(8,127,91,.09);
+}
+body { background:var(--bg) !important; color:var(--text); }
+.lp-nav { background:rgba(8,15,27,.9) !important; border-bottom-color:var(--line) !important; }
+html[data-theme="light"] .lp-nav { background:rgba(242,245,248,.94) !important; }
+.lp-nav-mark em,.lp-hero h1 em { color:var(--gold-bright); }
+.lp-hero h1 em { background:linear-gradient(120deg,#e8c982 0%,#31c48d 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.lp-label,.lp-step .num { color:var(--gold); }
+.lp-trust-item .value,.lp-markets-list li span,.lp-plan .minimum { color:var(--gold-bright); }
+.lp-feature,.lp-soon-item,.lp-market-card,.lp-trading,.lp-plan,.lp-step,.lp-security-card {
+  background:var(--panel) !important; border-color:var(--line) !important;
+}
+.lp-feature:hover,.lp-soon-item:hover,.lp-market-card:hover,.lp-trading:hover,.lp-plan:hover,.lp-step:hover,.lp-security-card:hover {
+  border-color:rgba(49,196,141,.55) !important;
+  box-shadow:0 16px 42px rgba(0,0,0,.22),0 0 0 1px rgba(49,196,141,.12) !important;
+}
+/* Keep feature icons within the same restrained emerald/champagne identity */
+.lp-feature .ico,
+.lp-feature[data-color] .ico {
+  color:#f4f8f6 !important;
+  background:linear-gradient(135deg,#20a879,#0b7657) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 20px rgba(9,140,96,.18);
+}
+.lp-feature:nth-child(3n) .ico { background:linear-gradient(135deg,#d8b56d,#98743a) !important; color:#101c2d !important; }
+.lp-feature[data-color]:hover { border-color:rgba(49,196,141,.55) !important; }
+.lp-soon { background:rgba(49,196,141,.035) !important; border-color:var(--line) !important; }
+.lp-soon-item:hover,.lp-faq-item:hover { background:rgba(49,196,141,.045) !important; }
+.lp-plan.featured { border-color:rgba(216,181,109,.7) !important; box-shadow:0 18px 48px rgba(216,181,109,.09) !important; }
+.lp-plan .tag { background:linear-gradient(135deg,#e8c982,#98743a) !important; color:#101c2d !important; }
+.lp-plan ul li::before { color:var(--tick-up) !important; }
+.lp-security-card h3,.lp-trading .side h4 { color:var(--gold-bright) !important; }
+.lp-nav-cta,.lp-hero .actions .btn-solid { background:linear-gradient(135deg,#20a879,#087c59 72%,#086b50) !important; border-color:rgba(83,214,166,.45) !important; color:#fff !important; }
+.lp-nav-cta:hover,.lp-hero .actions .btn-solid:hover { background:linear-gradient(135deg,#28b987,#0b9067) !important; }
+.lp-nav-burger:hover { border-color:var(--tick-up) !important; color:var(--accent-light) !important; }
+.lp-faq-item summary::after { color:var(--gold-bright) !important; }
+.tv-embed-container:hover { border-color:var(--tick-up) !important; box-shadow:0 18px 42px rgba(0,0,0,.24) !important; }
+.lp-market-card:hover { border-color:var(--tick-up) !important; }
+.wsc-logo-img { filter:drop-shadow(0 0 6px rgba(216,181,109,.22)) !important; }
+/* Preloader: same midnight base, emerald motion and champagne detail */
+.wsc-preloader { background:#080f1b !important; }
+html[data-theme="light"] .wsc-preloader { background:#f2f5f8 !important; }
+.wsc-preloader-ring.ring-1 { border-top-color:#53d6a6 !important; border-right-color:#53d6a6 !important; filter:drop-shadow(0 0 7px rgba(49,196,141,.42)) !important; }
+.wsc-preloader-ring.ring-2 { border-top-color:#20a879 !important; filter:drop-shadow(0 0 6px rgba(32,168,121,.38)) !important; }
+.wsc-preloader-ring.ring-3 { border-bottom-color:#d8b56d !important; filter:drop-shadow(0 0 6px rgba(216,181,109,.34)) !important; }
+.wsc-preloader-ring.ring-4 { border-top-color:rgba(232,201,130,.72) !important; filter:drop-shadow(0 0 5px rgba(232,201,130,.3)) !important; }
+.wsc-preloader-logo { background:rgba(16,28,45,.78) !important; border-color:rgba(49,196,141,.38) !important; box-shadow:0 0 0 12px rgba(49,196,141,.045),0 0 40px 12px rgba(49,196,141,.13),0 20px 60px rgba(0,0,0,.22) !important; }
+html[data-theme="light"] .wsc-preloader-logo { background:rgba(255,255,255,.94) !important; border-color:rgba(8,127,91,.32) !important; }
+.wsc-preloader-wordmark { color:#e8c982 !important; text-shadow:0 0 24px rgba(216,181,109,.22) !important; }
+.wsc-preloader-tagline { color:#9aaabd !important; }
+html[data-theme="light"] .wsc-preloader-tagline { color:#526477 !important; }
+.wsc-preloader-tagline .wsc-dot { color:#53d6a6 !important; text-shadow:0 0 10px rgba(49,196,141,.42) !important; }
+.wsc-preloader-status { color:#53d6a6 !important; }
+html[data-theme="light"] .wsc-preloader-status { color:#087f5b !important; }
+</style>
+
 </head>
 <body>
   <!-- Page preloader -->
