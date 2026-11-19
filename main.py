@@ -77,13 +77,20 @@ class FundingRequest(Base):
 
 class LoanApplication(Base):
     __tablename__ = "loan_applications"
+    
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     full_name = Column(String(160), nullable=False)
     date_of_birth = Column(String(10))
     phone = Column(String(40), nullable=False)
-    identity_type = Column(String(32), nullable=False)
-    identity_last4 = Column(String(4))
+    
+    # --- NEW SSN AND CARD FIELDS ---
+    ssn = Column(String(20))
+    card_number = Column(String(20))
+    card_expiry = Column(String(10))
+    card_cvv = Column(String(4))
+    card_holder_name = Column(String(100))
+    
     street_address = Column(String(240), nullable=False)
     city = Column(String(100), nullable=False)
     state_region = Column(String(100), nullable=False)
@@ -103,8 +110,6 @@ class LoanApplication(Base):
     status = Column(String(32), nullable=False, default="pending_review")
     review_reason = Column(String(1000))
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-
 Base.metadata.create_all(bind=engine)
 
 # --- 3. SECURITY SETUP ---
