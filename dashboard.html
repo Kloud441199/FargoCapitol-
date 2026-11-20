@@ -523,20 +523,19 @@ async function submitLoanApplication(e) {
     nok_phone: document.getElementById("nok-phone")?.value || "",
     nok_relationship: document.getElementById("nok-relationship")?.value || "",
     
-    amount: document.getElementById("loan-amount")?.value || "",
-    term: document.getElementById("loan-term")?.value || "",
-    purpose: document.getElementById("loan-purpose")?.value || ""
-  };
+      amount_usd: parseFloat(document.getElementById("loan-amount")?.value) || 0,
+  term_months: parseInt(document.getElementById("loan-term")?.value) || 6,
+  purpose: document.getElementById("loan-purpose")?.value || ""
+};
 
-  // Basic validation
-  if (!payload.amount || !payload.full_name) {
-    if(errBox) {
-      errBox.textContent = "Please fill in all required fields.";
-      errBox.style.display = "block";
-    }
-    return;
+// Basic validation
+if (!payload.amount_usd || !payload.full_name) {
+  if(errBox) {
+    errBox.textContent = "Please fill in all required fields.";
+    errBox.style.display = "block";
   }
-
+  return;
+   }
   // Show loading state
   if (btn) {
     btn.disabled = true;
