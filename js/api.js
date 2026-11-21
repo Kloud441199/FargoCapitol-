@@ -373,5 +373,7 @@ function requireRole(role) {
   if (!u || u.role !== role) window.location.href = "login.html";
 }
 
-console.log("%c[MOCK API] active — no server needed", "color:#10B981;font-weight:bold;font-size:12px");
-console.log("%cLog in as admin@fcl.test (admin) or demo@fcl.test (user). Any password.", "color:#D4AF37;font-size:11px");
+if (WSC_MOCK) {
+  console.log("%c[MOCK API] active — no server needed", "color:#10B981;font-weight:bold;font-size:12px");
+  console.log("%cLog in as admin@fcl.test (admin) or demo@fcl.test (user). Any password.", "color:#D4AF37;font-size:11px");
+}
