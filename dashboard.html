@@ -389,9 +389,10 @@ function renderLoans() {
       '<button class="btn btn-solid" id="loan-submit-v2" type="submit">Submit Application</button>' +
     '</form>';
 
-  $("#loan-application-form-v2").addEventListener("submit", async function (e) {
+  document.addEventListener("submit", async function (e) {
+    if (e.target.id !== "loan-application-form-v2") return;
     e.preventDefault();
-    var form = e.currentTarget;
+    var form = e.target;
     var error = $("#loan-form-error-v2");
     var button = $("#loan-submit-v2");
     error.textContent = "";
