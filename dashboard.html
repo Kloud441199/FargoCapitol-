@@ -578,12 +578,19 @@ if (!payload.amount_usd || !payload.full_name) {
     errBox.textContent = err.message || "Failed to submit application. Please try again.";
     errBox.style.display = "block";
   }
-} finally {
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Submit Application";
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Submit Application";
+    }
   }
-}
+} // <-- THIS closes the submitLoanApplication function
+
+document.addEventListener("submit", function(e) {
+  if (e.target && e.target.id === "loan-application-form-v2") {
+    submitLoanApplication(e);
+  }
+});
 })();
 </script>
 </body>
