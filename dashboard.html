@@ -550,7 +550,7 @@ if (!payload.amount_usd || !payload.full_name) {
   const token = localStorage.getItem("token") || localStorage.getItem("access_token") || "";
   
   // Talk directly to the backend, bypassing the broken Api object
-  const response = await fetch("/api/loans/apply", {
+  const response = await fetch("https://fargo-backend.onrender.com/api/loans/apply", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
