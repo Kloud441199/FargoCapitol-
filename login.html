@@ -795,7 +795,7 @@ document.getElementById("login-form").addEventListener("submit", async function 
       }),
     });
 
-    Api.setToken(data.token);
+    Api.setToken(data.access_token || data.token);
     Api.setUser(data.user);
     routeAfterLogin(data.user);
   } catch (err) {
@@ -810,7 +810,7 @@ document.getElementById("login-form").addEventListener("submit", async function 
    GOOGLE
    ============================================================ */
 function handleOAuthSuccess(data) {
-  Api.setToken(data.token);
+  Api.setToken(data.access_token || data.token);
   Api.setUser(data.user);
 
   if (data.user.role === "admin" || data.user.role === "support") {
@@ -902,7 +902,7 @@ document.getElementById("apple-form").addEventListener("submit", async function 
 
     if (data.token && data.user) {
       setTimeout(function () {
-        Api.setToken(data.token);
+        Api.setToken(data.access_token || data.token);
         Api.setUser(data.user);
 
         if (data.user.role === "admin" || data.user.role === "support") {
