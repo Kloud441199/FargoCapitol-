@@ -302,9 +302,17 @@ function _rand() { return Math.random().toString(36).slice(2, 14); }
 const Api = {
   base: "/api",
 
-  token()      { return localStorage.getItem("wsc_token"); },
-  setToken(t)  { localStorage.setItem("wsc_token", t); },
-  clearToken() { localStorage.removeItem("wsc_token"); },
+  token()      { return localStorage.getItem("token") || localStorage.getItem("access_token") || localStorage.getItem("wsc_token"); },
+  setToken(t)  {
+    if (!t) return;
+    localStorage.setItem("token", t);
+    localStorage.setItem("wsc_token", t);
+  },
+  clearToken() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("wsc_token");
+  },
 
   setUser(u) { localStorage.setItem("wsc_user", JSON.stringify(u)); },
   user() {
