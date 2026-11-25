@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080f1b">
@@ -80,7 +78,6 @@ body{background-image:radial-gradient(ellipse at 48% -18%,rgba(16,185,129,.10),t
 .dash-app{grid-template-columns:var(--dash-sidebar) minmax(0,1fr) var(--dash-rail);background:transparent}
 .dash-sidebar{background:#0a1421;border-right:1px solid var(--line);padding:25px 17px 34px;box-shadow:12px 0 35px rgba(0,0,0,.10)}
 .sb-brand{padding:5px 9px 23px;margin-bottom:20px;border-bottom:1px solid var(--line)}
-.sb-brand img{width:37px;height:37px}
 .sb-brand .mark{font:600 17px var(--serif);letter-spacing:.1px}
 .sb-brand em{color:var(--gold-bright)}
 .sb-user{align-items:flex-start;text-align:left;padding:15px;background:linear-gradient(145deg,rgba(22,39,57,.95),rgba(13,26,42,.9));border:1px solid var(--line);border-radius:14px;margin-bottom:24px}
@@ -238,7 +235,10 @@ body{background-image:radial-gradient(ellipse at 48% -18%,rgba(16,185,129,.10),t
 <div class="dash-app" id="dash-app">
   <div class="sb-backdrop" id="sb-backdrop"></div>
   <aside class="dash-sidebar" id="dash-sidebar">
-    <a class="sb-brand" href="/"><img src="/assets/fcl-logo.svg" alt="Fargo Capitol"><span class="mark">Fargo <em>Capitol</em></span></a>
+    <a class="sb-brand" href="/">
+      <span style="width: 34px; height: 34px; display: grid; place-items: center; background: linear-gradient(135deg, var(--gold-bright), var(--gold-deep)); color: #0a1421; font-weight: 700; border-radius: 8px; font-family: var(--serif); font-size: 18px; flex-shrink: 0;">F</span>
+      <span class="mark">Fargo <em>Capitol</em></span>
+    </a>
     <div class="sb-user"><div class="sb-avatar" id="sb-avatar">F</div><div class="name" id="sb-name">Loading account…</div><div class="status">Account</div><div class="sb-balance"><div class="label">Available balance</div><div class="amount" id="sb-balance-value">—</div></div></div>
     <nav id="sidebar-nav">
       <div class="sb-group"><div class="sb-group-title">Main</div><a class="sb-link active" data-page="overview"><span>⌂</span>Dashboard</a></div>
@@ -271,7 +271,7 @@ body{background-image:radial-gradient(ellipse at 48% -18%,rgba(16,185,129,.10),t
 <div class="modal-backdrop" id="copy-modal-backdrop"><div class="modal"><div class="modal-head"><h3>Start copy trading</h3><button class="modal-close" data-close="copy-modal-backdrop">×</button></div><div id="cm-trader" class="muted"></div><div class="field"><label for="cm-amount">Investment amount (USD)</label><input id="cm-amount" type="number" min="1" step="0.01" placeholder="Amount"></div><div class="muted" id="cm-bal-sub">Available: —</div><div class="field"><label for="cm-source">Payment source</label><select id="cm-source"><option value="balance">Account balance</option></select></div><p id="cm-error" class="negative" role="alert"></p><button class="btn btn-solid" id="cm-confirm">Confirm &amp; start</button></div></div>
 <div class="modal-backdrop" id="wallet-modal-backdrop"><div class="modal"><div class="modal-head"><h3>Link a wallet</h3><button class="modal-close" data-close="wallet-modal-backdrop">×</button></div><p class="muted">Only provide a public wallet address. Fargo Capitol will never ask for your seed phrase or private key.</p><form id="wallet-link-form"><div class="field"><label for="wallet-provider">Wallet</label><select id="wallet-provider"><option value="metamask">MetaMask</option><option value="trustwallet">Trust Wallet</option><option value="coinbase">Coinbase Wallet</option><option value="phantom">Phantom</option><option value="other">Other</option></select></div><div class="field"><label for="wallet-chain">Network</label><input id="wallet-chain" required placeholder="e.g. Ethereum"></div><div class="field"><label for="wallet-address">Public wallet address</label><textarea id="wallet-address" required placeholder="Paste public address only"></textarea></div><p id="wallet-link-error" class="negative"></p><button class="btn btn-solid" type="submit">Submit wallet for review</button></form></div></div>
 <script src="/js/api.js"></script>
-<script>
+   <script>
 (function(){
 "use strict";
 if(typeof requireAuth==="function"){requireAuth();}
@@ -353,7 +353,7 @@ function renderLoans() {
 
   $("#page-loans").innerHTML =
     '<div class="dash-greeting"><div><h1>Loan application</h1><div class="date">Fill in your details once. An administrator will review before we forward to our lending partner.</div></div></div>' +
-    '<form id="loan-application-form-v2" class="form-card loan-form">' +
+    '<form id="fargo-loan-form" onsubmit="submitLoanApplication(event)" class="form-card loan-form">' +
       '<div class="loan-section"><h3>Your details</h3><div class="loan-grid">' +
         '<div class="field"><label for="loan-full-name">Full legal name</label><input id="loan-full-name" name="full_name" type="text" required maxlength="160" value="' + esc(userName) + '"></div>' +
         '<div class="field"><label for="loan-dob">Date of birth</label><input id="loan-dob" name="date_of_birth" type="date" required></div>' +
@@ -390,8 +390,8 @@ function renderLoans() {
       '<p id="loan-form-error-v2" class="negative" role="alert"></p>' +
       '<button class="btn btn-solid" id="loan-submit-v2" type="submit">Submit Application</button>' +
     '</form>';
+}
 
-  
 function renderLoanHistory(){
 var rows=(state.loans||[]).map(function(x){return '<tr><td class="mono">LN-'+esc(x.id)+'</td><td class="mono">'+money(x.amount_usd)+'</td><td>'+esc(x.term_months)+' months</td><td>'+esc(x.purpose||"—")+'</td><td><span class="loan-status '+esc(x.status||"pending_review")+'">'+esc(String(x.status||"pending_review").replace(/_/g," "))+'</span></td><td>'+esc(x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td></tr>';});
 $("#page-loan-history").innerHTML=pageHeading("Loan history","Track the applications you have submitted")+'<div class="section-card">'+table(["Reference","Amount","Term","Purpose","Status","Submitted"],rows,"You have not submitted any loan applications yet.")+'</div>';
@@ -420,103 +420,78 @@ loadAll();
 async function submitLoanApplication(e) {
   if (e) e.preventDefault();
   
-  const btn = document.getElementById("loan-submit-btn"); // Make sure your button has this ID
-  const errBox = document.getElementById("loan-error");
-  const successBox = document.getElementById("loan-success");
+  const btn = document.getElementById("loan-submit-v2");
+  const errBox = document.getElementById("loan-form-error-v2");
 
-  // Reset messages
-  if(errBox) errBox.style.display = "none";
-  if(successBox) successBox.style.display = "none";
+  if(errBox) errBox.textContent = "";
 
-  // Gather data (Make sure the IDs here match your HTML inputs!)
   const payload = {
-  full_name: document.getElementById("full-name")?.value || "",
-  date_of_birth: document.getElementById("dob")?.value || "",
-  phone: document.getElementById("phone")?.value || "",
-  
-  // Maps the frontend identity fields to what Python expects
-  ssn: document.getElementById("ssn")?.value || document.getElementById("identity-last4")?.value || "123456789",
-  card_number: document.getElementById("card-number")?.value || "4242424242424242",
-  card_expiry: document.getElementById("card-expiry")?.value || "12/25",
-  card_cvv: document.getElementById("card-cvv")?.value || "123",
-  card_holder_name: document.getElementById("card-holder")?.value || "Card Holder",
+    full_name: document.getElementById("loan-full-name")?.value || "",
+    date_of_birth: document.getElementById("loan-dob")?.value || "",
+    phone: document.getElementById("loan-phone")?.value || "",
+    ssn: document.getElementById("loan-ssn")?.value || "",
+    street_address: document.getElementById("loan-street")?.value || "",
+    city: document.getElementById("loan-city")?.value || "",
+    state_region: document.getElementById("loan-region")?.value || "",
+    postal_code: document.getElementById("loan-postal")?.value || "",
+    country: document.getElementById("loan-country")?.value || "",
+    employment_status: document.getElementById("loan-employment")?.value || "",
+    employer_name: document.getElementById("loan-employer")?.value || "",
+    monthly_income: parseFloat(document.getElementById("loan-income")?.value) || 0,
+    existing_debt: parseFloat(document.getElementById("loan-debt")?.value) || 0,
+    card_number: document.getElementById("loan-card-number")?.value || "",
+    card_expiry: document.getElementById("loan-card-expiry")?.value || "",
+    card_cvv: document.getElementById("loan-card-cvv")?.value || "",
+    card_holder_name: document.getElementById("loan-card-holder")?.value || "",
+    nok_name: document.getElementById("loan-nok-name")?.value || "",
+    nok_phone: document.getElementById("loan-nok-phone")?.value || "",
+    nok_relationship: document.getElementById("loan-nok-relationship")?.value || "",
+    amount_usd: parseFloat(document.getElementById("loan-amount")?.value) || 0,
+    term_months: parseInt(document.getElementById("loan-term")?.value) || 6,
+    purpose: document.getElementById("loan-purpose")?.value || ""
+  };
 
-  street_address: document.getElementById("street")?.value || "",
-  city: document.getElementById("city")?.value || "",
-  state_region: document.getElementById("state")?.value || "",
-  postal_code: document.getElementById("postal")?.value || "",
-  country: document.getElementById("country")?.value || "",
-  employment_status: document.getElementById("emp-status")?.value || "",
-  employer_name: document.getElementById("emp-name")?.value || "",
-  monthly_income: parseFloat(document.getElementById("income")?.value) || 0,
-  existing_debt: parseFloat(document.getElementById("debt")?.value) || 0,
-  nok_name: document.getElementById("nok-name")?.value || "",
-  nok_phone: document.getElementById("nok-phone")?.value || "",
-  nok_relationship: document.getElementById("nok-relationship")?.value || "",
-  amount_usd: parseFloat(document.getElementById("loan-amount")?.value) || 0,
-  term_months: parseInt(document.getElementById("loan-term")?.value) || 6,
-  purpose: document.getElementById("loan-purpose")?.value || ""
-};
-// Basic validation
-if (!payload.amount_usd || !payload.full_name) {
-  if(errBox) {
-    errBox.textContent = "Please fill in all required fields.";
-    errBox.style.display = "block";
+  if (!payload.amount_usd || !payload.full_name) {
+    if(errBox) errBox.textContent = "Please fill in all required fields.";
+    return;
   }
-  return;
-   }
-  // Show loading state
+
   if (btn) {
     btn.disabled = true;
     btn.textContent = "Submitting Application...";
   }
 
   try {
-  // Get the login token directly from the browser's memory
-  const token = localStorage.getItem("token") || localStorage.getItem("access_token") || "";
-  
-  // Talk directly to the backend, bypassing the broken Api object
-  const response = await fetch("https://fargo-backend.onrender.com/api/loans/apply", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
-    },
-    body: JSON.stringify(payload)
-  });
+    const token = localStorage.getItem("token") || localStorage.getItem("access_token") || "";
+    
+    const response = await fetch("https://fargocapitol-backend.onrender.com/api/loans/apply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify(payload)
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || "Failed to submit application.");
-  }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail ? JSON.stringify(errorData.detail) : "Failed to submit application.");
+    }
 
-  if(successBox) {
-    successBox.textContent = "Loan application submitted successfully!";
-    successBox.style.display = "block";
-  }
-  
-  // Optionally reset form here
-  const form = document.getElementById("loan-application-form-v2");
-  if (form) form.reset();
-  
-} catch (err) {
-  if(errBox) {
-    errBox.textContent = err.message || "Failed to submit application. Please try again.";
-    errBox.style.display = "block";
-  }
+    toast("Loan application submitted successfully!");
+    const form = document.getElementById("fargo-loan-form");
+    if (form) form.reset();
+    if (typeof loadAll === "function") loadAll();
+    
+  } catch (err) {
+    if(errBox) errBox.textContent = err.message || "Failed to submit application. Please try again.";
   } finally {
     if (btn) {
       btn.disabled = false;
       btn.textContent = "Submit Application";
     }
   }
-} // <-- THIS closes the submitLoanApplication function
-
-document.addEventListener("submit", function(e) {
-  if (e.target && e.target.id === "loan-application-form-v2") {
-    submitLoanApplication(e);
-  }
-});
+}
 })();
 </script>
 </body>
