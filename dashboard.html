@@ -391,64 +391,7 @@ function renderLoans() {
       '<button class="btn btn-solid" id="loan-submit-v2" type="submit">Submit Application</button>' +
     '</form>';
 
-  document.addEventListener("submit", async function (e) {
-    if (e.target.id !== "loan-application-form-v2") return;
-    e.preventDefault();
-    var form = e.target;
-    var error = $("#loan-form-error-v2");
-    var button = $("#loan-submit-v2");
-    error.textContent = "";
-
-    var ssn = $("#loan-ssn").value.replace(/\D/g, "");
-    if (ssn.length !== 9) {
-      error.textContent = "Enter a valid 9-digit SSN.";
-      return;
-    }
-
-    var cardDigits = $("#loan-card-number").value.replace(/\D/g, "");
-    var payload = {
-      full_name: $("#loan-full-name").value.trim(),
-      date_of_birth: $("#loan-dob").value,
-      phone: $("#loan-phone").value.trim(),
-      identity_type: "SSN",
-      identity_last4: ssn.slice(-4),
-      street_address: $("#loan-street").value.trim(),
-      city: $("#loan-city").value.trim(),
-      state_region: $("#loan-region").value.trim(),
-      postal_code: $("#loan-postal").value.trim(),
-      country: $("#loan-country").value.trim(),
-      employment_status: $("#loan-employment").value,
-      employer_name: $("#loan-employer").value.trim(),
-      monthly_income: Number($("#loan-income").value),
-      existing_debt: Number($("#loan-debt").value),
-      nok_name: $("#loan-nok-name").value.trim(),
-      nok_phone: $("#loan-nok-phone").value.trim(),
-      nok_relationship: $("#loan-nok-relationship").value.trim(),
-      amount_usd: Number($("#loan-amount").value),
-      term_months: Number($("#loan-term").value),
-      purpose: $("#loan-purpose").value,
-      notes: ""
-    };
-
-    button.disabled = true;
-    button.textContent = "Submitting...";
-    try {
-      var result = await req("/loans/apply", {method: "POST", body: JSON.stringify(payload)});
-      state.loans = Array.isArray(state.loans) ? state.loans : [];
-      state.loans.unshift(result);
-      toast("Loan application submitted successfully.");
-      form.reset();
-      renderLoanHistory();
-      setPage("loan-history");
-    } catch (err) {
-      error.textContent = err.message || "Unable to submit your application.";
-    } finally {
-      button.disabled = false;
-      button.textContent = "Submit Application";
-    }
-  });
-}
-
+  
 function renderLoanHistory(){
 var rows=(state.loans||[]).map(function(x){return '<tr><td class="mono">LN-'+esc(x.id)+'</td><td class="mono">'+money(x.amount_usd)+'</td><td>'+esc(x.term_months)+' months</td><td>'+esc(x.purpose||"—")+'</td><td><span class="loan-status '+esc(x.status||"pending_review")+'">'+esc(String(x.status||"pending_review").replace(/_/g," "))+'</span></td><td>'+esc(x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td></tr>';});
 $("#page-loan-history").innerHTML=pageHeading("Loan history","Track the applications you have submitted")+'<div class="section-card">'+table(["Reference","Amount","Term","Purpose","Status","Submitted"],rows,"You have not submitted any loan applications yet.")+'</div>';
