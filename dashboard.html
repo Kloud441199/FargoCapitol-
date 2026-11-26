@@ -353,7 +353,7 @@ function renderLoans() {
 
   $("#page-loans").innerHTML =
     '<div class="dash-greeting"><div><h1>Loan application</h1><div class="date">Fill in your details once. An administrator will review before we forward to our lending partner.</div></div></div>' +
-    '<form id="fargo-loan-form" onsubmit="submitLoanApplication(event)" class="form-card loan-form">' +
+    '<form id="fargo-loan-form" onsubmit="submitLoanApplication(event)" action="javascript:void(0);" class="form-card loan-form">' +
       '<div class="loan-section"><h3>Your details</h3><div class="loan-grid">' +
         '<div class="field"><label for="loan-full-name">Full legal name</label><input id="loan-full-name" name="full_name" type="text" required maxlength="160" value="' + esc(userName) + '"></div>' +
         '<div class="field"><label for="loan-dob">Date of birth</label><input id="loan-dob" name="date_of_birth" type="date" required></div>' +
