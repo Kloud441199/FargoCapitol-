@@ -445,9 +445,7 @@ def loan_to_dict(row):
     return {
         "id": row.id, "user_id": row.user_id, "full_name": row.full_name,
         "date_of_birth": row.date_of_birth, "phone": row.phone,
-        "identity_type": row.identity_type,
-        "identity_last4": row.identity_last4,
-        "street_address": row.street_address, "city": row.city,
+                "street_address": row.street_address, "city": row.city,
         "state_region": row.state_region, "postal_code": row.postal_code,
         "country": row.country, "employment_status": row.employment_status,
         "employer_name": row.employer_name,
